@@ -1,3 +1,6 @@
+# GraphQL
+schema.gql
+
 # Logs
 logs
 *.log
