@@ -5,8 +5,9 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as Joi from 'joi';
 import { join } from 'path';
-import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
-import { RestaurantsModule } from 'src/restaurants/restaurants.module';
+import { User } from 'src/users/entities/user.entity';
+import { CommonModule } from './common/common.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -32,13 +33,14 @@ import { RestaurantsModule } from 'src/restaurants/restaurants.module';
       port: +process.env.DB_PORT,
       synchronize: process.env.NODE_ENV !== 'prod',
       logging: true,
-      entities: [Restaurant],
+      entities: [User],
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
     }),
-    RestaurantsModule,
+    UsersModule,
+    CommonModule,
   ],
   controllers: [],
   providers: [],
