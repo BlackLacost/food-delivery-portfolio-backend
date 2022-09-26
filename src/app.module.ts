@@ -2,7 +2,7 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { join } from 'path';
-import { RestaurantsModule } from './restaurants/restaurants.module';
+import { RestaurantsModule } from 'src/restaurants/restaurants.module';
 
 @Module({
   imports: [
