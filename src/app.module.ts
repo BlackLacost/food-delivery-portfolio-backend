@@ -46,6 +46,7 @@ import { UsersModule } from './users/users.module';
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+      context: ({ req }) => ({ user: req.user }),
     }),
     JwtModule.forRoot({ privateKey: process.env.PRIVATE_KEY }),
     UsersModule,
@@ -58,7 +59,7 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(JwtMiddleware).forRoutes({
       path: '/graphql',
-      method: RequestMethod.ALL,
+      method: RequestMethod.POST,
     });
   }
 }
