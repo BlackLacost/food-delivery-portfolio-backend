@@ -22,6 +22,7 @@ import { UsersModule } from './users/users.module';
         DB_NAME: Joi.string().required(),
         DB_HOST: Joi.string().required(),
         DB_PORT: Joi.string().required(),
+        SECRET_KEY: Joi.string().required(),
       }),
     }),
     TypeOrmModule.forRoot({
