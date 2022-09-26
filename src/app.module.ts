@@ -12,7 +12,6 @@ import * as Joi from 'joi';
 import { join } from 'path';
 import { JwtMiddleware } from 'src/jwt/jwt.middleware';
 import { User } from 'src/users/entities/user.entity';
-import { CommonModule } from './common/common.module';
 import { JwtModule } from './jwt/jwt.module';
 import { UsersModule } from './users/users.module';
 
@@ -50,7 +49,6 @@ import { UsersModule } from './users/users.module';
     }),
     JwtModule.forRoot({ privateKey: process.env.PRIVATE_KEY }),
     UsersModule,
-    CommonModule,
   ],
   controllers: [],
   providers: [],
