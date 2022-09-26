@@ -7,6 +7,7 @@ import * as Joi from 'joi';
 import { join } from 'path';
 import { User } from 'src/users/entities/user.entity';
 import { CommonModule } from './common/common.module';
+import { JwtModule } from './jwt/jwt.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -22,7 +23,7 @@ import { UsersModule } from './users/users.module';
         DB_NAME: Joi.string().required(),
         DB_HOST: Joi.string().required(),
         DB_PORT: Joi.string().required(),
-        SECRET_KEY: Joi.string().required(),
+        PRIVATE_KEY: Joi.string().required(),
       }),
     }),
     TypeOrmModule.forRoot({
@@ -40,6 +41,7 @@ import { UsersModule } from './users/users.module';
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
     }),
+    JwtModule.forRoot({ privateKey: process.env.PRIVATE_KEY }),
     UsersModule,
     CommonModule,
   ],
