@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from 'src/jwt/jwt.service';
 import { CreateAccountInput } from 'src/users/dtos/create-account.dto';
+import { EditProfileInput } from 'src/users/dtos/edit-profile.dto';
 import { LoginInput, LoginOutput } from 'src/users/dtos/login.dto';
 import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
@@ -47,5 +48,19 @@ export class UsersService {
 
   async findById(id: number): Promise<User> {
     return this.users.findOneBy({ id });
+  }
+
+  async editProfile(
+    userId: number,
+    { email, password }: EditProfileInput,
+  ): Promise<User> {
+    const user = await this.users.findOneBy({ id: userId });
+    if (email) {
+      user.email = email;
+    }
+    if (password) {
+      user.password = password;
+    }
+    return this.users.save(user);
   }
 }

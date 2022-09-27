@@ -6,6 +6,10 @@ import {
   CreateAccountInput,
   CreateAccountOutput,
 } from 'src/users/dtos/create-account.dto';
+import {
+  EditProfileInput,
+  EditProfileOutput,
+} from 'src/users/dtos/edit-profile.dto';
 import { LoginInput, LoginOutput } from 'src/users/dtos/login.dto';
 import {
   UserProfileInput,
@@ -60,6 +64,20 @@ export class UsersResolver {
       return { ok: true, user };
     } catch (e) {
       return { ok: false, error: 'User Not Found' };
+    }
+  }
+
+  @Mutation((returns) => EditProfileOutput)
+  @UseGuards(AuthGuard)
+  async editProfile(
+    @AuthUser() authUser: User,
+    @Args('input') editProfileInput: EditProfileInput,
+  ): Promise<EditProfileOutput> {
+    try {
+      await this.usersService.editProfile(authUser.id, editProfileInput);
+      return { ok: true };
+    } catch (error) {
+      return { ok: false, error };
     }
   }
 }
