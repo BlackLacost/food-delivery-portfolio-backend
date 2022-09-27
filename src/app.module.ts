@@ -14,6 +14,7 @@ import { JwtMiddleware } from 'src/jwt/jwt.middleware';
 import { User } from 'src/users/entities/user.entity';
 import { Verification } from 'src/users/entities/verification.entity';
 import { JwtModule } from './jwt/jwt.module';
+import { MailModule } from './mail/mail.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -30,6 +31,11 @@ import { UsersModule } from './users/users.module';
         DB_HOST: Joi.string().required(),
         DB_PORT: Joi.string().required(),
         PRIVATE_KEY: Joi.string().required(),
+        MAIL_HOST: Joi.string().required(),
+        MAIL_PORT: Joi.number().required(),
+        MAIL_SECURE: Joi.boolean().required(),
+        MAIL_FROM_EMAIL: Joi.string().required(),
+        MAIL_PASSWORD: Joi.string().required(),
       }),
     }),
     TypeOrmModule.forRoot({
@@ -49,6 +55,13 @@ import { UsersModule } from './users/users.module';
       context: ({ req }) => ({ user: req.user }),
     }),
     JwtModule.forRoot({ privateKey: process.env.PRIVATE_KEY }),
+    MailModule.forRoot({
+      host: process.env.MAIL_HOST,
+      port: +process.env.MAIL_PORT,
+      secure: process.env.MAIL_SECURE === 'true' ? true : false,
+      fromEmail: process.env.MAIL_FROM_EMAIL,
+      password: process.env.MAIL_PASSWORD,
+    }),
     UsersModule,
   ],
   controllers: [],
