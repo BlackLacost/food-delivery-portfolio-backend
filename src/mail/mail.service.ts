@@ -9,11 +9,7 @@ export class MailService {
     @Inject(CONFIG_OPTIONS) private readonly options: MailModuleOptions,
   ) {}
 
-  private async sendEmail(
-    subject: string,
-    content: string,
-    to: string,
-  ): Promise<void> {
+  private async sendEmail(subject: string, content: string, to: string) {
     try {
       let transporter = nodemailer.createTransport({
         host: this.options.host,
@@ -34,5 +30,13 @@ export class MailService {
     } catch (error) {
       console.log(error);
     }
+  }
+
+  async sendVerificationEmail(email: string, code: string) {
+    await this.sendEmail(
+      'Verify Your Email',
+      `Verify email by link http://${code}`,
+      email,
+    );
   }
 }
