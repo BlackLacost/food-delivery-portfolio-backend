@@ -9,7 +9,7 @@ export class MailService {
     @Inject(CONFIG_OPTIONS) private readonly options: MailModuleOptions,
   ) {}
 
-  private async sendEmail(subject: string, content: string, to: string) {
+  private sendEmail(subject: string, content: string, to: string) {
     try {
       let transporter = nodemailer.createTransport({
         host: this.options.host,
@@ -21,7 +21,7 @@ export class MailService {
         },
       });
 
-      await transporter.sendMail({
+      transporter.sendMail({
         from: `Excited User blacklacost@inbox.ru`,
         to,
         subject,
@@ -33,7 +33,7 @@ export class MailService {
   }
 
   async sendVerificationEmail(email: string, code: string) {
-    await this.sendEmail(
+    this.sendEmail(
       'Verify Your Email',
       `Verify email by link http://${code}`,
       email,
