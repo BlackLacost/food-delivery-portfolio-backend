@@ -11,6 +11,7 @@ import { Repository } from 'typeorm';
 const mockRepository = () => ({
   findOne: jest.fn(),
   findOneBy: jest.fn(),
+  findOneByOrFail: jest.fn(),
   save: jest.fn(),
   create: jest.fn(),
 });
@@ -171,7 +172,24 @@ describe('UsersService', () => {
     });
   });
 
-  it.todo('findById');
+  describe('findById', () => {
+    it('should find an existing user', async () => {
+      usersRepository.findOneByOrFail.mockResolvedValue({ id: 1 });
+
+      const result = await service.findById(1);
+
+      expect(result).toEqual({ ok: true, user: { id: 1 } });
+    });
+
+    it('should fail if no user is found', async () => {
+      usersRepository.findOneByOrFail.mockRejectedValue(new Error());
+
+      const result = await service.findById(1);
+
+      expect(result).toEqual({ ok: false, error: 'User Not Found' });
+    });
+  });
+
   it.todo('editProfile');
   it.todo('verifyEmail');
 });
