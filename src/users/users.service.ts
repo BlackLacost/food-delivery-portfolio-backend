@@ -64,7 +64,7 @@ export class UsersService {
       const token = this.jwtService.sign({ id: user.id });
       return { ok: true, token };
     } catch (error) {
-      return { ok: false, error };
+      return { ok: false, error: "Can't log user in" };
     }
   }
 
@@ -103,7 +103,6 @@ export class UsersService {
       await this.users.save(user);
       return { ok: true };
     } catch (error) {
-      console.log(error);
       return { ok: false, error: 'Could not update profile' };
     }
   }
@@ -123,7 +122,6 @@ export class UsersService {
       }
       return { ok: false, error: 'Verification not found' };
     } catch (error) {
-      console.log(error);
       return { ok: false, error: 'Could not verify email' };
     }
   }
