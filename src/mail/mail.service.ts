@@ -9,7 +9,7 @@ export class MailService {
     @Inject(CONFIG_OPTIONS) private readonly options: MailModuleOptions,
   ) {}
 
-  private sendEmail(subject: string, content: string, to: string) {
+  async sendEmail(subject: string, content: string, to: string) {
     try {
       let transporter = nodemailer.createTransport({
         host: this.options.host,
@@ -21,14 +21,15 @@ export class MailService {
         },
       });
 
-      transporter.sendMail({
+      await transporter.sendMail({
         from: `Excited User blacklacost@inbox.ru`,
         to,
         subject,
         text: content,
       });
+      return true;
     } catch (error) {
-      console.log(error);
+      return false;
     }
   }
 
