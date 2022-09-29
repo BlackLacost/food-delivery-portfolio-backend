@@ -24,7 +24,7 @@ import { UsersModule } from './users/users.module';
       envFilePath: process.env.NODE_ENV === 'dev' ? '.env.dev' : '.env.test',
       ignoreEnvFile: process.env.NODE_ENV === 'prod',
       validationSchema: Joi.object({
-        NODE_ENV: Joi.string().valid('dev', 'prod').required(),
+        NODE_ENV: Joi.string().valid('dev', 'prod', 'test').required(),
         DB_USER: Joi.string().required(),
         DB_PASS: Joi.string().required(),
         DB_NAME: Joi.string().required(),
@@ -46,7 +46,7 @@ import { UsersModule } from './users/users.module';
       host: process.env.DB_HOST,
       port: +process.env.DB_PORT,
       synchronize: process.env.NODE_ENV !== 'prod',
-      logging: true,
+      logging: process.env.NODE_ENV === 'dev',
       entities: [User, Verification],
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
