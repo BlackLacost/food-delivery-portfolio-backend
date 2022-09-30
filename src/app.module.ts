@@ -11,6 +11,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import * as Joi from 'joi';
 import { join } from 'path';
 import { JwtMiddleware } from 'src/jwt/jwt.middleware';
+import { Category } from 'src/restaurants/entities/category.entity';
+import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Verification } from 'src/users/entities/verification.entity';
 import { JwtModule } from './jwt/jwt.module';
@@ -47,7 +49,7 @@ import { UsersModule } from './users/users.module';
       port: +process.env.DB_PORT,
       synchronize: process.env.NODE_ENV !== 'prod',
       logging: process.env.NODE_ENV === 'dev',
-      entities: [User, Verification],
+      entities: [User, Verification, Restaurant, Category],
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
