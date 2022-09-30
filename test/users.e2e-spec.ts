@@ -210,6 +210,47 @@ describe('UserModule (e2e)', () => {
     });
   });
 
+  describe('editProfile', () => {
+    const mutationEditProfile = (email: string) => `
+    mutation {
+      editProfile(input: {
+        email: "${email}"
+      }) {
+        ok,
+        error
+      }
+    }
+    `;
+
+    const queryMe = () => `
+    {
+      me {
+        email
+      }
+    }
+    `;
+
+    it('should change email', async () => {
+      const newEmail = 'new@gmail.com';
+
+      const {
+        status,
+        body: {
+          data: { editProfile },
+        },
+      } = await privateTest(mutationEditProfile(newEmail), jwtToken);
+      const {
+        body: {
+          data: { me },
+        },
+      } = await privateTest(queryMe(), jwtToken);
+
+      expect(status).toEqual(200);
+      expect(editProfile.ok).toEqual(true);
+      expect(editProfile.error).toEqual(null);
+      expect(me.email).toEqual(newEmail);
+    });
+  });
+
   it.todo('verifyEmail');
-  it.todo('editProfile');
 });
