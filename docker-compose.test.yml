@@ -1,10 +1,10 @@
 version: '3.8'
 
 services:
-  db-dev:
+  db-test:
     image: postgres
     restart: always
-    container_name: uber-eats-dev-container
+    container_name: uber-eats-test-container
     environment:
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASS}
@@ -14,4 +14,4 @@ services:
 
 networks:
   default:
-    name: uber-eats-dev-network
+    name: uber-eats-test-network
