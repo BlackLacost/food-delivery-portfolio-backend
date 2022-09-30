@@ -2,9 +2,10 @@ import { Field, InputType, ObjectType } from '@nestjs/graphql';
 import { IsString, Length } from 'class-validator';
 import { CoreEntity } from 'src/common/entities/core.entity';
 import { Category } from 'src/restaurants/entities/category.entity';
+import { User } from 'src/users/entities/user.entity';
 import { Column, Entity, ManyToOne } from 'typeorm';
 
-@InputType({ isAbstract: true })
+@InputType('RestaurantInputType', { isAbstract: true })
 @ObjectType()
 @Entity()
 export class Restaurant extends CoreEntity {
@@ -24,7 +25,16 @@ export class Restaurant extends CoreEntity {
   @IsString()
   address: string;
 
-  @ManyToOne((type) => Category, (category) => category.restaurants)
-  @Field((type) => Category)
+  @ManyToOne((type) => Category, (category) => category.restaurants, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  @Field((type) => Category, { nullable: true })
   category: Category;
+
+  @ManyToOne((type) => User, (owner) => owner.restaurants, {
+    onDelete: 'CASCADE',
+  })
+  @Field((type) => User, { nullable: true })
+  owner: User;
 }

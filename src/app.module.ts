@@ -13,6 +13,7 @@ import { join } from 'path';
 import { JwtMiddleware } from 'src/jwt/jwt.middleware';
 import { Category } from 'src/restaurants/entities/category.entity';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
+import { RestaurantsModule } from 'src/restaurants/restaurants.module';
 import { User } from 'src/users/entities/user.entity';
 import { Verification } from 'src/users/entities/verification.entity';
 import { JwtModule } from './jwt/jwt.module';
@@ -65,6 +66,7 @@ import { UsersModule } from './users/users.module';
       password: process.env.MAIL_PASSWORD,
     }),
     UsersModule,
+    RestaurantsModule,
   ],
   controllers: [],
   providers: [],
