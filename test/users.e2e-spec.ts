@@ -2,6 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
+import { Verification } from 'src/users/entities/verification.entity';
 import * as request from 'supertest';
 import { Connection, Repository } from 'typeorm';
 import { AppModule } from '../src/app.module';
@@ -22,6 +23,7 @@ const testUser = {
 describe('UserModule (e2e)', () => {
   let app: INestApplication;
   let usersRepository: Repository<User>;
+  let verificationsRepository: Repository<Verification>;
   let jwtToken: string;
 
   const baseTest = () => request(app.getHttpServer()).post(GRAPHQL_ENDPOINT);
@@ -36,6 +38,7 @@ describe('UserModule (e2e)', () => {
 
     app = module.createNestApplication();
     usersRepository = module.get(getRepositoryToken(User));
+    verificationsRepository = module.get(getRepositoryToken(Verification));
     await app.init();
   });
 
@@ -252,5 +255,48 @@ describe('UserModule (e2e)', () => {
     });
   });
 
-  it.todo('verifyEmail');
+  describe('verifyEmail', () => {
+    let verificationCode: string;
+    const mutation = (code: string) => `
+    mutation {
+      verifyEmail(input: {
+        code: "${code}"
+      }) {
+        ok,
+        error
+      }
+    }
+    `;
+
+    beforeAll(async () => {
+      const [verification] = await verificationsRepository.find();
+      verificationCode = verification.code;
+    });
+
+    it('should verify email', async () => {
+      const {
+        status,
+        body: {
+          data: { verifyEmail },
+        },
+      } = await publicTest(mutation(verificationCode));
+
+      expect(status).toEqual(200);
+      expect(verifyEmail.ok).toEqual(true);
+      expect(verifyEmail.error).toEqual(null);
+    });
+
+    it('should fail on wrong verification code', async () => {
+      const {
+        status,
+        body: {
+          data: { verifyEmail },
+        },
+      } = await publicTest(mutation('wrong verify code'));
+
+      expect(status).toEqual(200);
+      expect(verifyEmail.ok).toEqual(false);
+      expect(verifyEmail.error).toEqual(expect.any(String));
+    });
+  });
 });
