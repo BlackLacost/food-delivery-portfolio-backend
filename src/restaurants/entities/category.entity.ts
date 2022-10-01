@@ -8,14 +8,19 @@ import { Column, Entity, OneToMany } from 'typeorm';
 @ObjectType()
 @Entity()
 export class Category extends CoreEntity {
-  @Column()
+  @Column({ unique: true })
   @Field((type) => String)
   @IsString()
   @Length(5)
   name: string;
 
-  @Column()
+  @Column({ unique: true })
   @Field((type) => String)
+  @IsString()
+  slug: string;
+
+  @Column({ nullable: true })
+  @Field((type) => String, { nullable: true })
   @IsString()
   coverImage: string;
 
