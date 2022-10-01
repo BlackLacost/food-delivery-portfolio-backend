@@ -2,9 +2,8 @@
 
 The Backend of Uber Eats Clone
 
-## Restaurant Model
+## Roles
 
-- name
-- category
-- address
-- coverImage
+- if roles are undefined. It's publicRoute.
+- if roles are ['Any]. It's privateRoute for any user.
+- if roles are ['Client']. It's privateRoute for user with role 'Client'

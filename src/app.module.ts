@@ -10,6 +10,7 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as Joi from 'joi';
 import { join } from 'path';
+import { AuthModule } from 'src/auth/auth.module';
 import { JwtMiddleware } from 'src/jwt/jwt.middleware';
 import { Category } from 'src/restaurants/entities/category.entity';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
@@ -65,6 +66,7 @@ import { UsersModule } from './users/users.module';
       fromEmail: process.env.MAIL_FROM_EMAIL,
       password: process.env.MAIL_PASSWORD,
     }),
+    AuthModule,
     UsersModule,
     RestaurantsModule,
   ],
