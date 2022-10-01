@@ -3,7 +3,7 @@ import { IsString, Length } from 'class-validator';
 import { CoreEntity } from 'src/common/entities/core.entity';
 import { Category } from 'src/restaurants/entities/category.entity';
 import { User } from 'src/users/entities/user.entity';
-import { Column, Entity, ManyToOne } from 'typeorm';
+import { Column, Entity, ManyToOne, RelationId } from 'typeorm';
 
 @InputType('RestaurantInputType', { isAbstract: true })
 @ObjectType()
@@ -37,4 +37,7 @@ export class Restaurant extends CoreEntity {
   })
   @Field((type) => User, { nullable: true })
   owner: User;
+
+  @RelationId((restaurant: Restaurant) => restaurant.owner)
+  onwerId: number;
 }
