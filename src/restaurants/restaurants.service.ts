@@ -2,6 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AllCategoriesOutput } from 'src/restaurants/dtos/all-categories.dto';
 import {
+  CategoryInput,
+  CategoryOutput,
+} from 'src/restaurants/dtos/category.dto';
+import {
   CreateRestaurantInput,
   CreateRestaurantOutput,
 } from 'src/restaurants/dtos/create-restaurant.dto';
@@ -135,5 +139,22 @@ export class RestaurantService {
 
   countRestaurants(category: Category): Promise<number> {
     return this.restaurants.count({ where: { category: { id: category.id } } });
+  }
+
+  async findCategoryBySlug({ slug }: CategoryInput): Promise<CategoryOutput> {
+    try {
+      const category = await this.categories.findOne({
+        where: { slug },
+        relations: { restaurants: true },
+      });
+
+      if (category) {
+        return { ok: true, error: null, category };
+      } else {
+        return { ok: false, error: 'Category not found' };
+      }
+    } catch (error) {
+      return { ok: false, error: 'Could not load category' };
+    }
   }
 }
