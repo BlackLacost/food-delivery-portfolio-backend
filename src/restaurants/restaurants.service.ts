@@ -17,11 +17,17 @@ import {
   EditRestaurantInput,
   EditRestaurantOutput,
 } from 'src/restaurants/dtos/edit-restaurant.dto';
+import {
+  RestaurantsInput,
+  RestaurantsOutput,
+} from 'src/restaurants/dtos/restaurants.dto';
 import { Category } from 'src/restaurants/entities/category.entity';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
 import { CategoryRepository } from 'src/restaurants/repositories/category.repository';
 import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
+
+const itemsOnPage = 25;
 
 @Injectable()
 export class RestaurantService {
@@ -146,7 +152,6 @@ export class RestaurantService {
     page,
   }: CategoryInput): Promise<CategoryOutput> {
     try {
-      const itemsOnPage = 25;
       const category = await this.categories.findOneBy({ slug });
 
       if (!category) return { ok: false, error: 'Category not found' };
@@ -156,16 +161,34 @@ export class RestaurantService {
         take: itemsOnPage,
         skip: (page - 1) * itemsOnPage,
       });
-      category.restaurants = restaurants;
       const totalResults = await this.countRestaurants(category);
 
       return {
         ok: true,
         category,
+        restaurants,
         totalPages: Math.ceil(totalResults / itemsOnPage),
+        totalResults,
       };
     } catch (error) {
       return { ok: false, error: 'Could not load category' };
+    }
+  }
+
+  async allRestaurans({ page }: RestaurantsInput): Promise<RestaurantsOutput> {
+    try {
+      const [results, totalResults] = await this.restaurants.findAndCount({
+        take: itemsOnPage,
+        skip: (page - 1) * itemsOnPage,
+      });
+      return {
+        ok: true,
+        results,
+        totalPages: Math.ceil(totalResults / itemsOnPage),
+        totalResults,
+      };
+    } catch (error) {
+      return { ok: false, error: 'Could not load restaurants' };
     }
   }
 }
