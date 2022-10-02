@@ -141,18 +141,29 @@ export class RestaurantService {
     return this.restaurants.count({ where: { category: { id: category.id } } });
   }
 
-  async findCategoryBySlug({ slug }: CategoryInput): Promise<CategoryOutput> {
+  async findCategoryBySlug({
+    slug,
+    page,
+  }: CategoryInput): Promise<CategoryOutput> {
     try {
-      const category = await this.categories.findOne({
-        where: { slug },
-        relations: { restaurants: true },
-      });
+      const itemsOnPage = 25;
+      const category = await this.categories.findOneBy({ slug });
 
-      if (category) {
-        return { ok: true, error: null, category };
-      } else {
-        return { ok: false, error: 'Category not found' };
-      }
+      if (!category) return { ok: false, error: 'Category not found' };
+
+      const restaurants = await this.restaurants.find({
+        where: { category: { id: category.id } },
+        take: itemsOnPage,
+        skip: (page - 1) * itemsOnPage,
+      });
+      category.restaurants = restaurants;
+      const totalResults = await this.countRestaurants(category);
+
+      return {
+        ok: true,
+        category,
+        totalPages: Math.ceil(totalResults / itemsOnPage),
+      };
     } catch (error) {
       return { ok: false, error: 'Could not load category' };
     }
