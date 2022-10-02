@@ -27,9 +27,17 @@ import {
   EditRestaurantOutput,
 } from 'src/restaurants/dtos/edit-restaurant.dto';
 import {
+  RestaurantInput,
+  RestaurantOutput,
+} from 'src/restaurants/dtos/restaurant.dto';
+import {
   RestaurantsInput,
   RestaurantsOutput,
 } from 'src/restaurants/dtos/restaurants.dto';
+import {
+  SearchRestaurantInput,
+  SearchRestaurantOutput,
+} from 'src/restaurants/dtos/search-restaurant.dto';
 import { Category } from 'src/restaurants/entities/category.entity';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
 import { RestaurantService } from 'src/restaurants/restaurants.service';
@@ -77,6 +85,20 @@ export class RestaurantResolver {
     @Args('input') restaurantsInput: RestaurantsInput,
   ): Promise<RestaurantsOutput> {
     return this.restaurantService.allRestaurans(restaurantsInput);
+  }
+
+  @Query((returns) => RestaurantOutput)
+  restaurant(
+    @Args('input') restaurantInput: RestaurantInput,
+  ): Promise<RestaurantOutput> {
+    return this.restaurantService.findRestaurantById(restaurantInput);
+  }
+
+  @Query((returns) => SearchRestaurantOutput)
+  searchRestaurant(
+    @Args('input') searchRestauranInput: SearchRestaurantInput,
+  ): Promise<SearchRestaurantOutput> {
+    return this.restaurantService.searchRestaurantByName(searchRestauranInput);
   }
 }
 

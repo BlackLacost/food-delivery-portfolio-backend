@@ -7,6 +7,7 @@ import {
 import { Category } from 'src/restaurants/entities/category.entity';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
 import { customCategoryRepositoryMethods } from 'src/restaurants/repositories/category.repository';
+import { customRestaurantRepositoryMethods } from 'src/restaurants/repositories/restaurants.repository';
 import {
   CategoryResolver,
   RestaurantResolver,
@@ -27,6 +28,15 @@ import { DataSource } from 'typeorm';
         return dataSource
           .getRepository(Category)
           .extend(customCategoryRepositoryMethods);
+      },
+    },
+    {
+      provide: getRepositoryToken(Restaurant),
+      inject: [getDataSourceToken()],
+      useFactory(dataSource: DataSource) {
+        return dataSource
+          .getRepository(Restaurant)
+          .extend(customRestaurantRepositoryMethods);
       },
     },
   ],

@@ -18,14 +18,23 @@ import {
   EditRestaurantOutput,
 } from 'src/restaurants/dtos/edit-restaurant.dto';
 import {
+  RestaurantInput,
+  RestaurantOutput,
+} from 'src/restaurants/dtos/restaurant.dto';
+import {
   RestaurantsInput,
   RestaurantsOutput,
 } from 'src/restaurants/dtos/restaurants.dto';
+import {
+  SearchRestaurantInput,
+  SearchRestaurantOutput,
+} from 'src/restaurants/dtos/search-restaurant.dto';
 import { Category } from 'src/restaurants/entities/category.entity';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
 import { CategoryRepository } from 'src/restaurants/repositories/category.repository';
+import { RestaurantRepository } from 'src/restaurants/repositories/restaurants.repository';
 import { User } from 'src/users/entities/user.entity';
-import { Repository } from 'typeorm';
+import { ILike } from 'typeorm';
 
 const itemsOnPage = 25;
 
@@ -33,7 +42,7 @@ const itemsOnPage = 25;
 export class RestaurantService {
   constructor(
     @InjectRepository(Restaurant)
-    private readonly restaurants: Repository<Restaurant>,
+    private readonly restaurants: RestaurantRepository,
     @InjectRepository(Category)
     private readonly categories: CategoryRepository,
   ) {}
@@ -177,18 +186,50 @@ export class RestaurantService {
 
   async allRestaurans({ page }: RestaurantsInput): Promise<RestaurantsOutput> {
     try {
-      const [results, totalResults] = await this.restaurants.findAndCount({
-        take: itemsOnPage,
-        skip: (page - 1) * itemsOnPage,
-      });
+      const { results, totalResults, totalPages } =
+        await this.restaurants.findAndCountPagination({}, page);
       return {
         ok: true,
         results,
-        totalPages: Math.ceil(totalResults / itemsOnPage),
+        totalPages,
         totalResults,
       };
     } catch (error) {
       return { ok: false, error: 'Could not load restaurants' };
+    }
+  }
+
+  async findRestaurantById({
+    restaurantId,
+  }: RestaurantInput): Promise<RestaurantOutput> {
+    try {
+      const restaurant = await this.restaurants.findOneBy({ id: restaurantId });
+
+      if (!restaurant) return { ok: false, error: 'Restaurant not found' };
+
+      return { ok: true, restaurant };
+    } catch (error) {
+      return { ok: false, error: 'Could not find restaurant' };
+    }
+  }
+
+  async searchRestaurantByName({
+    query,
+    page,
+  }: SearchRestaurantInput): Promise<SearchRestaurantOutput> {
+    try {
+      const { results, totalPages, totalResults } =
+        await this.restaurants.findAndCountPagination(
+          {
+            where: {
+              name: ILike(`%${query}%`),
+            },
+          },
+          page,
+        );
+      return { ok: true, restaurants: results, totalPages, totalResults };
+    } catch (error) {
+      return { ok: false, error: 'Could not search for restaurants' };
     }
   }
 }
