@@ -7,7 +7,10 @@ import {
 import { Category } from 'src/restaurants/entities/category.entity';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
 import { customCategoryRepositoryMethods } from 'src/restaurants/repositories/category.repository';
-import { RestaurantResolver } from 'src/restaurants/restaurants.resolver';
+import {
+  CategoryResolver,
+  RestaurantResolver,
+} from 'src/restaurants/restaurants.resolver';
 import { RestaurantService } from 'src/restaurants/restaurants.service';
 import { DataSource } from 'typeorm';
 
@@ -15,6 +18,7 @@ import { DataSource } from 'typeorm';
   imports: [TypeOrmModule.forFeature([Restaurant, Category])],
   providers: [
     RestaurantResolver,
+    CategoryResolver,
     RestaurantService,
     {
       provide: getRepositoryToken(Category),
