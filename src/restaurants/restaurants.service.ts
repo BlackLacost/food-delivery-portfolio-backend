@@ -6,6 +6,10 @@ import {
   CategoryOutput,
 } from 'src/restaurants/dtos/category.dto';
 import {
+  CreateDishInput,
+  CreateDishOutput,
+} from 'src/restaurants/dtos/create-dish.dto';
+import {
   CreateRestaurantInput,
   CreateRestaurantOutput,
 } from 'src/restaurants/dtos/create-restaurant.dto';
@@ -30,11 +34,12 @@ import {
   SearchRestaurantOutput,
 } from 'src/restaurants/dtos/search-restaurant.dto';
 import { Category } from 'src/restaurants/entities/category.entity';
+import { Dish } from 'src/restaurants/entities/dish.entity';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
 import { CategoryRepository } from 'src/restaurants/repositories/category.repository';
 import { RestaurantRepository } from 'src/restaurants/repositories/restaurants.repository';
 import { User } from 'src/users/entities/user.entity';
-import { ILike } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 
 const itemsOnPage = 25;
 
@@ -45,6 +50,8 @@ export class RestaurantService {
     private readonly restaurants: RestaurantRepository,
     @InjectRepository(Category)
     private readonly categories: CategoryRepository,
+    @InjectRepository(Dish)
+    private readonly dishes: Repository<Dish>,
   ) {}
 
   async createRestaurant(
@@ -203,7 +210,10 @@ export class RestaurantService {
     restaurantId,
   }: RestaurantInput): Promise<RestaurantOutput> {
     try {
-      const restaurant = await this.restaurants.findOneBy({ id: restaurantId });
+      const restaurant = await this.restaurants.findOne({
+        where: { id: restaurantId },
+        relations: { menu: true },
+      });
 
       if (!restaurant) return { ok: false, error: 'Restaurant not found' };
 
@@ -230,6 +240,30 @@ export class RestaurantService {
       return { ok: true, restaurants: results, totalPages, totalResults };
     } catch (error) {
       return { ok: false, error: 'Could not search for restaurants' };
+    }
+  }
+
+  async createDish(
+    owner: User,
+    createDishInput: CreateDishInput,
+  ): Promise<CreateDishOutput> {
+    try {
+      const restaurant = await this.restaurants.findOneBy({
+        id: createDishInput.restaurantId,
+      });
+
+      if (!restaurant) return { ok: false, error: 'Restaurant not found' };
+
+      if (owner.id !== restaurant.onwerId) {
+        return { ok: false, error: 'You are not owner' };
+      }
+
+      await this.dishes.save(
+        this.dishes.create({ ...createDishInput, restaurant }),
+      );
+      return { ok: true };
+    } catch (error) {
+      return { ok: false, error: 'Could not create dish' };
     }
   }
 }

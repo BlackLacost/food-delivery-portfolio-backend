@@ -11,6 +11,7 @@ import { customCategoryRepositoryMethods } from 'src/restaurants/repositories/ca
 import { customRestaurantRepositoryMethods } from 'src/restaurants/repositories/restaurants.repository';
 import {
   CategoryResolver,
+  DishResovler,
   RestaurantResolver,
 } from 'src/restaurants/restaurants.resolver';
 import { RestaurantService } from 'src/restaurants/restaurants.service';
@@ -21,6 +22,7 @@ import { DataSource } from 'typeorm';
   providers: [
     RestaurantResolver,
     CategoryResolver,
+    DishResovler,
     RestaurantService,
     {
       provide: getRepositoryToken(Category),
