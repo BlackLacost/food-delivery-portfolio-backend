@@ -13,6 +13,7 @@ import { join } from 'path';
 import { AuthModule } from 'src/auth/auth.module';
 import { JwtMiddleware } from 'src/jwt/jwt.middleware';
 import { Category } from 'src/restaurants/entities/category.entity';
+import { Dish } from 'src/restaurants/entities/dish.entity';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
 import { RestaurantsModule } from 'src/restaurants/restaurants.module';
 import { User } from 'src/users/entities/user.entity';
@@ -51,7 +52,7 @@ import { UsersModule } from './users/users.module';
       port: +process.env.DB_PORT,
       synchronize: process.env.NODE_ENV !== 'prod',
       logging: process.env.NODE_ENV === 'dev',
-      entities: [User, Verification, Restaurant, Category],
+      entities: [User, Verification, Restaurant, Category, Dish],
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,

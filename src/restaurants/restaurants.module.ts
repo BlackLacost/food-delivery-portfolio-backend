@@ -5,6 +5,7 @@ import {
   TypeOrmModule,
 } from '@nestjs/typeorm';
 import { Category } from 'src/restaurants/entities/category.entity';
+import { Dish } from 'src/restaurants/entities/dish.entity';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
 import { customCategoryRepositoryMethods } from 'src/restaurants/repositories/category.repository';
 import { customRestaurantRepositoryMethods } from 'src/restaurants/repositories/restaurants.repository';
@@ -16,7 +17,7 @@ import { RestaurantService } from 'src/restaurants/restaurants.service';
 import { DataSource } from 'typeorm';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Restaurant, Category])],
+  imports: [TypeOrmModule.forFeature([Restaurant, Category, Dish])],
   providers: [
     RestaurantResolver,
     CategoryResolver,
