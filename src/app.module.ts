@@ -12,6 +12,7 @@ import * as Joi from 'joi';
 import { join } from 'path';
 import { AuthModule } from 'src/auth/auth.module';
 import { JwtMiddleware } from 'src/jwt/jwt.middleware';
+import { OrderItem } from 'src/orders/entities/order-item.entity';
 import { Order } from 'src/orders/entities/order.entity';
 import { Category } from 'src/restaurants/entities/category.entity';
 import { Dish } from 'src/restaurants/entities/dish.entity';
@@ -54,7 +55,15 @@ import { UsersModule } from './users/users.module';
       port: +process.env.DB_PORT,
       synchronize: process.env.NODE_ENV !== 'prod',
       logging: process.env.NODE_ENV === 'dev',
-      entities: [User, Verification, Restaurant, Category, Dish, Order],
+      entities: [
+        User,
+        Verification,
+        Restaurant,
+        Category,
+        Dish,
+        Order,
+        OrderItem,
+      ],
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
