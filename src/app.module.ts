@@ -1,17 +1,12 @@
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
-import {
-  MiddlewareConsumer,
-  Module,
-  NestModule,
-  RequestMethod,
-} from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ApolloServerPluginLandingPageLocalDefault } from 'apollo-server-core';
 import * as Joi from 'joi';
 import { join } from 'path';
 import { AuthModule } from 'src/auth/auth.module';
-import { JwtMiddleware } from 'src/jwt/jwt.middleware';
 import { OrderItem } from 'src/orders/entities/order-item.entity';
 import { Order } from 'src/orders/entities/order.entity';
 import { Category } from 'src/restaurants/entities/category.entity';
@@ -68,9 +63,20 @@ import { UsersModule } from './users/users.module';
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       installSubscriptionHandlers: true,
+      playground: false,
+      plugins: [ApolloServerPluginLandingPageLocalDefault()],
+      subscriptions: {
+        // 'graphql-ws': {
+        //   onConnect: (context: Context<any>) => {},
+        // },
+        'graphql-ws': true,
+      },
+      sortSchema: true,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
-      context: ({ req }) => {
-        return { user: req.user };
+      context: ({ req, connectionParams }) => {
+        if (req) return { token: req.headers['x-jwt'] };
+
+        return { token: connectionParams['x-jwt'] };
       },
     }),
     JwtModule.forRoot({ privateKey: process.env.PRIVATE_KEY }),
@@ -89,11 +95,14 @@ import { UsersModule } from './users/users.module';
   controllers: [],
   providers: [],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(JwtMiddleware).forRoutes({
-      path: '/graphql',
-      method: RequestMethod.POST,
-    });
-  }
-}
+export class AppModule {}
+
+// Our middleware doesn't work in Subscription (websocket)
+// export class AppModule implements NestModule {
+//   configure(consumer: MiddlewareConsumer) {
+//     consumer.apply(JwtMiddleware).forRoutes({
+//       path: '/graphql',
+//       method: RequestMethod.POST,
+//     });
+//   }
+// }

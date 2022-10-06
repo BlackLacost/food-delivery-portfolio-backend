@@ -1,35 +1,55 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
-import { Observable } from 'rxjs';
 import { AllowedRoles } from 'src/auth/role.decorator';
-import { User } from 'src/users/entities/user.entity';
+import { JwtService } from 'src/jwt/jwt.service';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private readonly reflector: Reflector) {}
+  constructor(
+    private readonly reflector: Reflector,
+    private readonly jwtService: JwtService,
+    private readonly usersService: UsersService,
+  ) {}
 
-  canActivate(
-    context: ExecutionContext,
-  ): boolean | Promise<boolean> | Observable<boolean> {
-    const roles = this.reflector.get<AllowedRoles[]>(
-      'roles',
-      context.getHandler(),
-    );
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    try {
+      const roles = this.reflector.get<AllowedRoles[]>(
+        'roles',
+        context.getHandler(),
+      );
 
-    // public endpoint
-    if (!roles) return true;
+      // public endpoint
+      if (!roles) return true;
 
-    const gqlContext = GqlExecutionContext.create(context).getContext();
-    const user: User = gqlContext.user;
+      const gqlContext = GqlExecutionContext.create(context).getContext();
+      const token = gqlContext.token;
+      console.log({ token });
 
-    // private endpoint
-    if (!user) return false;
+      if (!token) return false;
 
-    // private endpoint with any role
-    if (roles.includes('Any')) return true;
+      const decoded = this.jwtService.verify(token.toString());
 
-    // authorization by role
-    return roles.includes(user.role);
+      if (typeof decoded === 'object' && decoded.hasOwnProperty('id')) {
+        const userId = decoded['id'];
+        const { user } = await this.usersService.findById(userId);
+
+        // private endpoint
+        if (!user) return false;
+
+        gqlContext['user'] = user;
+
+        // private endpoint with any role
+        if (roles.includes('Any')) return true;
+
+        // authorization by role
+        return roles.includes(user.role);
+      }
+
+      return false;
+    } catch (error) {
+      return false;
+    }
   }
 }
