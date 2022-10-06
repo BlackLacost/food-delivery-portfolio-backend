@@ -7,6 +7,7 @@ import { ApolloServerPluginLandingPageLocalDefault } from 'apollo-server-core';
 import * as Joi from 'joi';
 import { join } from 'path';
 import { AuthModule } from 'src/auth/auth.module';
+import { CommonModule } from 'src/common/common.module';
 import { OrderItem } from 'src/orders/entities/order-item.entity';
 import { Order } from 'src/orders/entities/order.entity';
 import { Category } from 'src/restaurants/entities/category.entity';
@@ -91,6 +92,7 @@ import { UsersModule } from './users/users.module';
     UsersModule,
     RestaurantsModule,
     OrdersModule,
+    CommonModule,
   ],
   controllers: [],
   providers: [],
