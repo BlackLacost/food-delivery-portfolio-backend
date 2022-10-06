@@ -4,13 +4,17 @@ import {
   CreateOrderInput,
   CreateOrderOutput,
 } from 'src/orders/dtos/create-order.dto';
+import {
+  EditOrderInput,
+  EditOrderOutput,
+} from 'src/orders/dtos/edit-order.dto';
 import { GetOrderInput, GetOrderOutput } from 'src/orders/dtos/get-order.dto';
 import {
   GetOrdersInput,
   GetOrdersOutput,
 } from 'src/orders/dtos/get-orders.dto';
 import { OrderItem } from 'src/orders/entities/order-item.entity';
-import { Order } from 'src/orders/entities/order.entity';
+import { Order, OrderStatus } from 'src/orders/entities/order.entity';
 import { Dish } from 'src/restaurants/entities/dish.entity';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
 import { RestaurantRepository } from 'src/restaurants/repositories/restaurants.repository';
@@ -112,6 +116,34 @@ export class OrdersService {
     }
   }
 
+  canSeeOrder(user: User, order: Order): boolean {
+    // let canSee = true;
+    // if (user.role === UserRole.Client && order.customerId !== user.id) {
+    //   canSee = false;
+    // }
+
+    // if (user.role === UserRole.Delivery && order.driverId !== user.id) {
+    //   canSee = false;
+    // }
+
+    // if (user.role == UserRole.Owner && order.restaurant.onwerId !== user.id) {
+    //   canSee = false;
+    // }
+    let canSee = false;
+    if (user.role === UserRole.Client && order.customerId === user.id) {
+      canSee = true;
+    }
+
+    if (user.role === UserRole.Delivery && order.driverId === user.id) {
+      canSee = true;
+    }
+
+    if (user.role === UserRole.Owner && order.restaurant.onwerId === user.id) {
+      canSee = true;
+    }
+    return canSee;
+  }
+
   async getOrder(
     user: User,
     { id: orderId }: GetOrderInput,
@@ -124,40 +156,60 @@ export class OrdersService {
 
       if (!order) return { ok: false, error: 'Order not found' };
 
-      // let canSee = true;
-      // if (user.role === UserRole.Client && order.customerId !== user.id) {
-      //   canSee = false;
-      // }
-
-      // if (user.role === UserRole.Delivery && order.driverId !== user.id) {
-      //   canSee = false;
-      // }
-
-      // if (user.role == UserRole.Owner && order.restaurant.onwerId !== user.id) {
-      //   canSee = false;
-      // }
-
-      let canSee = false;
-      if (user.role === UserRole.Client && order.customerId === user.id) {
-        canSee = true;
+      if (!this.canSeeOrder(user, order)) {
+        return { ok: false, error: "You can't see that" };
       }
-
-      if (user.role === UserRole.Delivery && order.driverId === user.id) {
-        canSee = true;
-      }
-
-      if (
-        user.role === UserRole.Owner &&
-        order.restaurant.onwerId === user.id
-      ) {
-        canSee = true;
-      }
-
-      if (!canSee) return { ok: false, error: "You can't see that" };
 
       return { ok: true, order };
     } catch (error) {
       return { ok: false, error: "You can't see that" };
+    }
+  }
+
+  async editOrder(
+    user: User,
+    { id: orderId, status }: EditOrderInput,
+  ): Promise<EditOrderOutput> {
+    try {
+      const order = await this.orders.findOne({
+        where: { id: orderId },
+        relations: { restaurant: true },
+      });
+
+      if (!order) return { ok: false, error: 'Order not found' };
+
+      if (!this.canSeeOrder(user, order)) {
+        return { ok: false, error: "You can't see that" };
+      }
+
+      let canEdit = true;
+      if (user.role === UserRole.Client) {
+        canEdit = false;
+      }
+
+      if (user.role === UserRole.Owner) {
+        if (status !== OrderStatus.Cooking && status !== OrderStatus.Cooked) {
+          canEdit = false;
+        }
+      }
+
+      if (user.role === UserRole.Delivery) {
+        if (
+          status !== OrderStatus.PickedUp &&
+          status !== OrderStatus.Delivered
+        ) {
+          canEdit = false;
+        }
+      }
+
+      if (!canEdit) return { ok: false, error: "You can't do that" };
+
+      order.status = status;
+      await this.orders.save(order);
+
+      return { ok: true };
+    } catch (error) {
+      return { ok: false, error: 'You could not do that' };
     }
   }
 }
