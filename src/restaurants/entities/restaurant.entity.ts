@@ -40,6 +40,7 @@ export class Restaurant extends CoreEntity {
   @Field((type) => User, { nullable: true })
   owner: User;
 
+  // TODO rename onwerId => ownerId
   @RelationId((restaurant: Restaurant) => restaurant.owner)
   onwerId: number;
 
