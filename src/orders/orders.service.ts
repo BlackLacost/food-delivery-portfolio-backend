@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PubSub } from 'graphql-subscriptions';
 import {
   NEW_COOKED_ORDER,
+  NEW_ORDER_UPDATE,
   NEW_PENDING_ORDER,
   PUB_SUB,
 } from 'src/common/common.constants';
@@ -184,7 +185,6 @@ export class OrdersService {
     try {
       const order = await this.orders.findOne({
         where: { id: orderId },
-        relations: { restaurant: true },
       });
 
       if (!order) return { ok: false, error: 'Order not found' };
@@ -224,6 +224,7 @@ export class OrdersService {
             cookedOrders: newOrder,
           });
       }
+      await this.pubSub.publish(NEW_ORDER_UPDATE, { orderUpdates: newOrder });
 
       return { ok: true };
     } catch (error) {
