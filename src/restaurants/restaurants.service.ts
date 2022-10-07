@@ -97,7 +97,7 @@ export class RestaurantService {
         return { ok: false, error: 'Restaurant not found' };
       }
 
-      if (owner.id !== restaurant.onwerId) {
+      if (owner.id !== restaurant.ownerId) {
         return {
           ok: false,
           error: "You can't edit a restaurant that you don't own",
@@ -137,7 +137,7 @@ export class RestaurantService {
         return { ok: false, error: 'Restaurant not found' };
       }
 
-      if (owner.id !== restaurant.onwerId) {
+      if (owner.id !== restaurant.ownerId) {
         return {
           ok: false,
           error: "You can't delete a restaurant that you don't own",
@@ -262,7 +262,7 @@ export class RestaurantService {
 
       if (!restaurant) return { ok: false, error: 'Restaurant not found' };
 
-      if (owner.id !== restaurant.onwerId) {
+      if (owner.id !== restaurant.ownerId) {
         return { ok: false, error: 'You are not owner' };
       }
 
@@ -287,7 +287,7 @@ export class RestaurantService {
 
       if (!dish) return { ok: false, error: 'Dish not found' };
 
-      if (dish.restaurant.onwerId !== owner.id) {
+      if (dish.restaurant.ownerId !== owner.id) {
         return { ok: false, error: 'You are not owner' };
       }
 
@@ -312,7 +312,7 @@ export class RestaurantService {
 
       if (!dish) return { ok: false, error: 'Dish not found' };
 
-      if (dish.restaurant.onwerId !== owner.id) {
+      if (dish.restaurant.ownerId !== owner.id) {
         return { ok: false, error: 'You are not owner' };
       }
 

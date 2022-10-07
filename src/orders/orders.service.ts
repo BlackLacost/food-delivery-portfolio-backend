@@ -100,7 +100,7 @@ export class OrdersService {
         }),
       );
       await this.pubSub.publish(NEW_PENDING_ORDER, {
-        pendingOrders: { order, ownerId: restaurant.onwerId },
+        pendingOrders: { order, ownerId: restaurant.ownerId },
       });
 
       return { ok: true };
@@ -150,7 +150,7 @@ export class OrdersService {
       canSee = true;
     }
 
-    if (user.role === UserRole.Owner && order.restaurant.onwerId === user.id) {
+    if (user.role === UserRole.Owner && order.restaurant.ownerId === user.id) {
       canSee = true;
     }
     return canSee;
