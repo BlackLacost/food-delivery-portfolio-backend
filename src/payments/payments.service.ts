@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Interval } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   CreatePaymentInput,
@@ -8,7 +9,7 @@ import { GetPaymentsOutput } from 'src/payments/dtos/get-payments.dto';
 import { Payment } from 'src/payments/entities/payment.entity';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
 import { User } from 'src/users/entities/user.entity';
-import { Repository } from 'typeorm';
+import { LessThan, Repository } from 'typeorm';
 
 @Injectable()
 export class PaymentsService {
@@ -35,6 +36,12 @@ export class PaymentsService {
         this.payments.create({ transactionId, user: owner, restaurant }),
       );
 
+      restaurant.isPromoted = true;
+      const date = new Date();
+      date.setDate(date.getDate() + 7);
+      restaurant.promotedUntil = date;
+      await this.restaurants.save(restaurant);
+
       return { ok: true };
     } catch (error) {
       return { ok: false, error: 'Could not create payment' };
@@ -49,6 +56,19 @@ export class PaymentsService {
       return { ok: true, payments };
     } catch (error) {
       return { ok: false, error: 'Could not get payments' };
+    }
+  }
+
+  @Interval(5000)
+  async checkPrmotedRestaurants() {
+    const restaurants = await this.restaurants.find({
+      where: { isPromoted: true, promotedUntil: LessThan(new Date()) },
+    });
+
+    for (let restaurant of restaurants) {
+      restaurant.isPromoted = false;
+      restaurant.promotedUntil = null;
+      await this.restaurants.save(restaurant);
     }
   }
 }
