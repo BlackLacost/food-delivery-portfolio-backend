@@ -4,6 +4,7 @@ import {
   CreatePaymentInput,
   CreatePaymentOutput,
 } from 'src/payments/dtos/create-payment.dto';
+import { GetPaymentsOutput } from 'src/payments/dtos/get-payments.dto';
 import { Payment } from 'src/payments/entities/payment.entity';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
 import { User } from 'src/users/entities/user.entity';
@@ -37,6 +38,17 @@ export class PaymentsService {
       return { ok: true };
     } catch (error) {
       return { ok: false, error: 'Could not create payment' };
+    }
+  }
+
+  async getPayments(user: User): Promise<GetPaymentsOutput> {
+    try {
+      const payments = await this.payments.find({
+        where: { user: { id: user.id } },
+      });
+      return { ok: true, payments };
+    } catch (error) {
+      return { ok: false, error: 'Could not get payments' };
     }
   }
 }
