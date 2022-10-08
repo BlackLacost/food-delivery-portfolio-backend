@@ -10,6 +10,7 @@ import { AuthModule } from 'src/auth/auth.module';
 import { CommonModule } from 'src/common/common.module';
 import { OrderItem } from 'src/orders/entities/order-item.entity';
 import { Order } from 'src/orders/entities/order.entity';
+import { Payment } from 'src/payments/entities/payment.entity';
 import { Category } from 'src/restaurants/entities/category.entity';
 import { Dish } from 'src/restaurants/entities/dish.entity';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
@@ -19,6 +20,7 @@ import { Verification } from 'src/users/entities/verification.entity';
 import { JwtModule } from './jwt/jwt.module';
 import { MailModule } from './mail/mail.module';
 import { OrdersModule } from './orders/orders.module';
+import { PaymentsModule } from './payments/payments.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -59,6 +61,7 @@ import { UsersModule } from './users/users.module';
         Dish,
         Order,
         OrderItem,
+        Payment,
       ],
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
@@ -93,6 +96,7 @@ import { UsersModule } from './users/users.module';
     RestaurantsModule,
     OrdersModule,
     CommonModule,
+    PaymentsModule,
   ],
   controllers: [],
   providers: [],
