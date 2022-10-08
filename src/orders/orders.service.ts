@@ -20,6 +20,10 @@ import {
   GetOrdersInput,
   GetOrdersOutput,
 } from 'src/orders/dtos/get-orders.dto';
+import {
+  TakeOrderInput,
+  TakeOrderOutput,
+} from 'src/orders/dtos/take-order.dto';
 import { OrderItem } from 'src/orders/entities/order-item.entity';
 import { Order, OrderStatus } from 'src/orders/entities/order.entity';
 import { Dish } from 'src/restaurants/entities/dish.entity';
@@ -229,6 +233,25 @@ export class OrdersService {
       return { ok: true };
     } catch (error) {
       return { ok: false, error: 'You could not do that' };
+    }
+  }
+
+  async takeOrder(
+    driver: User,
+    { id: orderId }: TakeOrderInput,
+  ): Promise<TakeOrderOutput> {
+    try {
+      const order = await this.orders.findOneBy({ id: orderId });
+
+      if (!order) return { ok: false, error: 'Order not found' };
+
+      order.driver = driver;
+      const newOrder = await this.orders.save(order);
+
+      await this.pubSub.publish(NEW_ORDER_UPDATE, { orderUpdates: newOrder });
+      return { ok: true };
+    } catch (error) {
+      return { ok: false, error: 'Could not take order' };
     }
   }
 }
