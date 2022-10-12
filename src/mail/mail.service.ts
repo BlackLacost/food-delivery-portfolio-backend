@@ -36,7 +36,7 @@ export class MailService {
   async sendVerificationEmail(email: string, code: string) {
     this.sendEmail(
       'Verify Your Email',
-      `Verify email by link http://${code}`,
+      `Verify email by link http://localhost:3000/confirm?code=${code}`,
       email,
     );
   }
