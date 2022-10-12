@@ -84,7 +84,7 @@ export class UsersService {
     try {
       const user = await this.users.findOneBy({ id: userId });
 
-      if (email) {
+      if (email && email !== user.email) {
         user.email = email;
         user.verified = false;
         await this.verifications.delete({ user: { id: user.id } });
