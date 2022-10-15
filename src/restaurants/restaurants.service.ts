@@ -204,7 +204,7 @@ export class RestaurantService {
     try {
       const { results, totalResults, totalPages } =
         await this.restaurants.findAndCountPagination(
-          { order: { isPromoted: 'DESC' } },
+          { order: { isPromoted: 'DESC' }, relations: { category: true } },
           page,
         );
       return {
@@ -224,7 +224,7 @@ export class RestaurantService {
     try {
       const restaurant = await this.restaurants.findOne({
         where: { id: restaurantId },
-        relations: { menu: true },
+        relations: { menu: true, category: true },
       });
 
       if (!restaurant) return { ok: false, error: 'Restaurant not found' };
