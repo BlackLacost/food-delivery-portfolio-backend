@@ -18,10 +18,12 @@ import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
 import { RestaurantsModule } from 'src/restaurants/restaurants.module';
 import { User } from 'src/users/entities/user.entity';
 import { Verification } from 'src/users/entities/verification.entity';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { JwtModule } from './jwt/jwt.module';
 import { MailModule } from './mail/mail.module';
 import { OrdersModule } from './orders/orders.module';
 import { PaymentsModule } from './payments/payments.module';
+import { UploadsModule } from './uploads/uploads.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -43,6 +45,10 @@ import { UsersModule } from './users/users.module';
         MAIL_SECURE: Joi.boolean().required(),
         MAIL_FROM_EMAIL: Joi.string().required(),
         MAIL_PASSWORD: Joi.string().required(),
+        CLOUDINARY_CLOUD_NAME: Joi.string().required(),
+        CLOUDINARY_API_KEY: Joi.string().required(),
+        CLOUDINARY_API_SECRET: Joi.string().required(),
+        CLOUDINARY_FOLDER: Joi.string().required(),
       }),
     }),
     TypeOrmModule.forRoot({
@@ -93,12 +99,19 @@ import { UsersModule } from './users/users.module';
       fromEmail: process.env.MAIL_FROM_EMAIL,
       password: process.env.MAIL_PASSWORD,
     }),
+    CloudinaryModule.forRoot({
+      cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+      apiKey: process.env.CLOUDINARY_API_KEY,
+      apiSecret: process.env.CLOUDINARY_API_SECRET,
+      folder: process.env.CLOUDINARY_FOLDER,
+    }),
     AuthModule,
     UsersModule,
     RestaurantsModule,
     OrdersModule,
     CommonModule,
     PaymentsModule,
+    UploadsModule,
   ],
   controllers: [],
   providers: [],
