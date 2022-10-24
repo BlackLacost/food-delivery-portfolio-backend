@@ -6,6 +6,10 @@ import {
   CreatePaymentOutput,
 } from 'src/payments/dtos/create-payment.dto';
 import { GetPaymentsOutput } from 'src/payments/dtos/get-payments.dto';
+import {
+  PromotionPaymentInput,
+  PromotionPaymentOutput,
+} from 'src/payments/dtos/promotion-payment.dto';
 import { Payment } from 'src/payments/entities/payment.entity';
 import { PaymentsService } from 'src/payments/payments.service';
 import { User } from 'src/users/entities/user.entity';
@@ -27,5 +31,14 @@ export class PaymentsResolver {
   @Role(['Owner'])
   getPayments(@AuthUser() user: User): Promise<GetPaymentsOutput> {
     return this.paymentsService.getPayments(user);
+  }
+
+  @Mutation((returns) => PromotionPaymentOutput)
+  @Role(['Owner'])
+  async promotionPayment(
+    @AuthUser() owner: User,
+    @Args('input') testPaymentInput: PromotionPaymentInput,
+  ): Promise<PromotionPaymentOutput> {
+    return this.paymentsService.promotionPayment(owner, testPaymentInput);
   }
 }

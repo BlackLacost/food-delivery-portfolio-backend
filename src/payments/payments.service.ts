@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { ICreatePayment, YooCheckout } from '@a2seven/yoo-checkout';
+import { Inject, Injectable } from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
@@ -6,10 +7,17 @@ import {
   CreatePaymentOutput,
 } from 'src/payments/dtos/create-payment.dto';
 import { GetPaymentsOutput } from 'src/payments/dtos/get-payments.dto';
+import {
+  PromotionPaymentInput,
+  PromotionPaymentOutput,
+} from 'src/payments/dtos/promotion-payment.dto';
 import { Payment } from 'src/payments/entities/payment.entity';
+import { YOUKASSA } from 'src/payments/payments.constants';
+import { YoukassaOptions } from 'src/payments/payments.interfaces';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
 import { User } from 'src/users/entities/user.entity';
 import { LessThan, Repository } from 'typeorm';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class PaymentsService {
@@ -17,6 +25,7 @@ export class PaymentsService {
     @InjectRepository(Payment) private readonly payments: Repository<Payment>,
     @InjectRepository(Restaurant)
     private readonly restaurants: Repository<Restaurant>,
+    @Inject(YOUKASSA) private readonly youkassaOptions: YoukassaOptions,
   ) {}
 
   async createPayment(
@@ -69,6 +78,44 @@ export class PaymentsService {
       restaurant.isPromoted = false;
       restaurant.promotedUntil = null;
       await this.restaurants.save(restaurant);
+    }
+  }
+
+  async promotionPayment(
+    owner: User,
+    { restaurantId }: PromotionPaymentInput,
+  ): Promise<PromotionPaymentOutput> {
+    try {
+      const checkout = new YooCheckout(this.youkassaOptions);
+
+      const idempotenceKey = uuidv4();
+
+      const createPayload: ICreatePayment = {
+        amount: {
+          value: '1000.00',
+          currency: 'RUB',
+        },
+        confirmation: {
+          type: 'embedded',
+        },
+        capture: true,
+        description: `Продвижение ресторана ${restaurantId}`,
+      };
+
+      const payment = await checkout.createPayment(
+        createPayload,
+        idempotenceKey,
+      );
+      return {
+        ok: true,
+        result: {
+          confirmationToken: payment.confirmation.confirmation_token,
+          transactionId: payment.id,
+        },
+      };
+    } catch (error) {
+      console.error(error);
+      return { ok: false, error: 'Could not create promotion payment' };
     }
   }
 }
