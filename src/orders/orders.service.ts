@@ -52,7 +52,6 @@ export class OrdersService {
   ): Promise<CreateOrderOutput> {
     try {
       const restaurant = await this.restaurants.findOneBy({ id: restaurantId });
-      console.log({ restaurant });
 
       if (!restaurant) return { ok: false, error: 'Restaurant not found' };
 
@@ -67,25 +66,28 @@ export class OrdersService {
 
         let dishFinalPrice = dish.price;
 
-        for (const itemOption of item.options) {
-          const dishOption = dish.options.find(
-            (dishOption) => dishOption.name === itemOption.name,
-          );
+        if (item.options) {
+          for (const itemOption of item.options) {
+            const dishOption = dish.options.find(
+              (dishOption) => dishOption.name === itemOption.name,
+            );
 
-          if (dishOption) {
-            if (dishOption.extra) {
-              dishFinalPrice += dishOption.extra;
-            } else {
-              const dishOptionChoice = dishOption.choices.find(
-                (choice) => choice.name === itemOption.choice,
-              );
-              if (dishOptionChoice.extra) {
-                dishFinalPrice += dishOptionChoice.extra;
+            if (dishOption) {
+              if (dishOption.extra) {
+                dishFinalPrice += dishOption.extra;
+              } else {
+                const dishOptionChoice = dishOption.choices.find(
+                  (choice) => choice.name === itemOption.choice,
+                );
+                if (dishOptionChoice.extra) {
+                  dishFinalPrice += dishOptionChoice.extra;
+                }
               }
             }
           }
-          orderFinalPrice += dishFinalPrice;
         }
+
+        orderFinalPrice += dishFinalPrice;
         const orderItem = await this.orderItems.save(
           this.orderItems.create({
             dish,
@@ -107,7 +109,7 @@ export class OrdersService {
         pendingOrders: { order, ownerId: restaurant.ownerId },
       });
 
-      return { ok: true };
+      return { ok: true, orderId: order.id };
     } catch (error) {
       return { ok: false, error: 'Could not create order' };
     }
@@ -120,7 +122,7 @@ export class OrdersService {
     try {
       const orders = await this.orders.findBy({
         ...(user.role === UserRole.Client && { customer: { id: user.id } }),
-        ...(user.role === UserRole.Delivery && { driver: { id: user.id } }),
+        // ...(user.role === UserRole.Delivery && { driver: { id: user.id } }),
         ...(user.role === UserRole.Owner && {
           restaurant: { owner: { id: user.id } },
         }),
@@ -246,10 +248,11 @@ export class OrdersService {
       if (!order) return { ok: false, error: 'Order not found' };
 
       order.driver = driver;
+      order.status = OrderStatus.PickedUp;
       const newOrder = await this.orders.save(order);
 
       await this.pubSub.publish(NEW_ORDER_UPDATE, { orderUpdates: newOrder });
-      return { ok: true };
+      return { ok: true, order: newOrder };
     } catch (error) {
       return { ok: false, error: 'Could not take order' };
     }
