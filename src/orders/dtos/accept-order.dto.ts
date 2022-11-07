@@ -3,10 +3,10 @@ import { CoreOutput } from 'src/common/dtos/output.dto';
 import { Order } from 'src/orders/entities/order.entity';
 
 @InputType()
-export class TakeOrderInput extends PickType(Order, ['id']) {}
+export class AcceptOrderInput extends PickType(Order, ['id']) {}
 
 @ObjectType()
-export class TakeOrderOutput extends CoreOutput {
+export class AcceptOrderOutput extends CoreOutput {
   @Field((type) => Order, { nullable: true })
   order?: Order;
 }

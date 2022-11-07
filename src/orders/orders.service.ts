@@ -8,6 +8,10 @@ import {
   PUB_SUB,
 } from 'src/common/common.constants';
 import {
+  AcceptOrderInput,
+  AcceptOrderOutput,
+} from 'src/orders/dtos/accept-order.dto';
+import {
   CreateOrderInput,
   CreateOrderOutput,
 } from 'src/orders/dtos/create-order.dto';
@@ -20,10 +24,6 @@ import {
   GetOrdersInput,
   GetOrdersOutput,
 } from 'src/orders/dtos/get-orders.dto';
-import {
-  TakeOrderInput,
-  TakeOrderOutput,
-} from 'src/orders/dtos/take-order.dto';
 import { OrderItem } from 'src/orders/entities/order-item.entity';
 import { Order, OrderStatus } from 'src/orders/entities/order.entity';
 import { Dish } from 'src/restaurants/entities/dish.entity';
@@ -212,7 +212,7 @@ export class OrdersService {
 
       if (user.role === UserRole.Delivery) {
         if (
-          status !== OrderStatus.PickedUp &&
+          status !== OrderStatus.Accepted &&
           status !== OrderStatus.Delivered
         ) {
           canEdit = false;
@@ -238,17 +238,17 @@ export class OrdersService {
     }
   }
 
-  async takeOrder(
+  async acceptOrder(
     driver: User,
-    { id: orderId }: TakeOrderInput,
-  ): Promise<TakeOrderOutput> {
+    { id: orderId }: AcceptOrderInput,
+  ): Promise<AcceptOrderOutput> {
     try {
       const order = await this.orders.findOneBy({ id: orderId });
 
       if (!order) return { ok: false, error: 'Order not found' };
 
       order.driver = driver;
-      order.status = OrderStatus.PickedUp;
+      order.status = OrderStatus.Accepted;
       const newOrder = await this.orders.save(order);
 
       await this.pubSub.publish(NEW_ORDER_UPDATE, { orderUpdates: newOrder });
