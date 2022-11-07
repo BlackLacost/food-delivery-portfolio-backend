@@ -9,6 +9,7 @@ import * as Joi from 'joi';
 import { join } from 'path';
 import { AuthModule } from 'src/auth/auth.module';
 import { CommonModule } from 'src/common/common.module';
+import { Coords } from 'src/common/entities/coords.entity';
 import { OrderItem } from 'src/orders/entities/order-item.entity';
 import { Order } from 'src/orders/entities/order.entity';
 import { Payment } from 'src/payments/entities/payment.entity';
@@ -63,6 +64,7 @@ import { UsersModule } from './users/users.module';
       synchronize: process.env.NODE_ENV !== 'prod',
       logging: process.env.NODE_ENV === 'dev',
       entities: [
+        Coords,
         User,
         Verification,
         Restaurant,

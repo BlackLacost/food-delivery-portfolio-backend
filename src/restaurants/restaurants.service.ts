@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Coords } from 'src/common/entities/coords.entity';
 import { AllCategoriesOutput } from 'src/restaurants/dtos/all-categories.dto';
 import {
   CategoryInput,
@@ -65,20 +66,34 @@ export class RestaurantService {
     private readonly categories: CategoryRepository,
     @InjectRepository(Dish)
     private readonly dishes: Repository<Dish>,
+    @InjectRepository(Coords)
+    private readonly coords: Repository<Coords>,
   ) {}
 
   async createRestaurant(
     owner: User,
-    createRestaurantInput: CreateRestaurantInput,
+    {
+      name,
+      address,
+      categoryName,
+      coverImage,
+      latitude,
+      longitude,
+    }: CreateRestaurantInput,
   ): Promise<CreateRestaurantOutput> {
     try {
-      const category = await this.categories.getOrCreate(
-        createRestaurantInput.categoryName,
+      const category = await this.categories.getOrCreate(categoryName);
+
+      const coords = await this.coords.save(
+        this.coords.create({ latitude, longitude }),
       );
 
       const newRestaurant = this.restaurants.create({
-        ...createRestaurantInput,
+        name,
+        address,
+        coverImage,
         owner,
+        coords,
         category,
       });
 

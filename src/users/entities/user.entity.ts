@@ -7,11 +7,20 @@ import {
 } from '@nestjs/graphql';
 import * as brcypt from 'bcrypt';
 import { IsBoolean, IsEmail, IsEnum, IsString } from 'class-validator';
+import { Coords } from 'src/common/entities/coords.entity';
 import { CoreEntity } from 'src/common/entities/core.entity';
 import { Order } from 'src/orders/entities/order.entity';
 import { Payment } from 'src/payments/entities/payment.entity';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
-import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany } from 'typeorm';
+import {
+  BeforeInsert,
+  BeforeUpdate,
+  Column,
+  Entity,
+  JoinColumn,
+  OneToMany,
+  OneToOne,
+} from 'typeorm';
 
 export enum UserRole {
   Client = 'Client',
@@ -43,6 +52,14 @@ export class User extends CoreEntity {
   @Field((type) => Boolean)
   @IsBoolean()
   verified: boolean;
+
+  @Column({ nullable: true })
+  @Field({ nullable: true })
+  address?: string;
+
+  @OneToOne((type) => Coords, { onDelete: 'CASCADE', eager: true })
+  @JoinColumn()
+  coords: Coords;
 
   @OneToMany((type) => Restaurant, (restaurant) => restaurant.owner)
   @Field((type) => [Restaurant])

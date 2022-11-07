@@ -4,6 +4,7 @@ import {
   getRepositoryToken,
   TypeOrmModule,
 } from '@nestjs/typeorm';
+import { Coords } from 'src/common/entities/coords.entity';
 import { Category } from 'src/restaurants/entities/category.entity';
 import { Dish } from 'src/restaurants/entities/dish.entity';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
@@ -18,7 +19,7 @@ import { RestaurantService } from 'src/restaurants/restaurants.service';
 import { DataSource } from 'typeorm';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Restaurant, Category, Dish])],
+  imports: [TypeOrmModule.forFeature([Restaurant, Category, Dish, Coords])],
   providers: [
     RestaurantResolver,
     CategoryResolver,

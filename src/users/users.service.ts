@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Coords } from 'src/common/entities/coords.entity';
 import { JwtService } from 'src/jwt/jwt.service';
 import { MailService } from 'src/mail/mail.service';
 import {
@@ -13,7 +14,7 @@ import {
 import { LoginInput, LoginOutput } from 'src/users/dtos/login.dto';
 import { UserProfileOuput } from 'src/users/dtos/user-profile.dto';
 import { VerifyEmailOutput } from 'src/users/dtos/verify-email.dto';
-import { User } from 'src/users/entities/user.entity';
+import { User, UserRole } from 'src/users/entities/user.entity';
 import { Verification } from 'src/users/entities/verification.entity';
 import { Repository } from 'typeorm';
 
@@ -23,6 +24,8 @@ export class UsersService {
     @InjectRepository(User) private readonly users: Repository<User>,
     @InjectRepository(Verification)
     private readonly verifications: Repository<Verification>,
+    @InjectRepository(Coords)
+    private readonly coords: Repository<Coords>,
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
   ) {}
@@ -31,15 +34,32 @@ export class UsersService {
     email,
     password,
     role,
+    latitude,
+    longitude,
+    address,
   }: CreateAccountInput): Promise<CreateAccountOutput> {
     try {
       const exists = await this.users.findOneBy({ email });
       if (exists) {
         return { ok: false, error: 'There is a user with that email already' };
       }
-      const user = await this.users.save(
-        this.users.create({ email, password, role }),
-      );
+
+      let user: User;
+
+      if (role === UserRole.Client) {
+        console.log(latitude, longitude);
+        const coords = await this.coords.save(
+          this.coords.create({ latitude, longitude }),
+        );
+        user = await this.users.save(
+          this.users.create({ email, password, role, address, coords }),
+        );
+      } else {
+        user = await this.users.save(
+          this.users.create({ email, password, role }),
+        );
+      }
+
       const verification = await this.verifications.save(
         this.verifications.create({ user }),
       );
