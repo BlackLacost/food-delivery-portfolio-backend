@@ -26,6 +26,8 @@ import {
 } from 'src/orders/dtos/get-orders.dto';
 import { OrderItem } from 'src/orders/entities/order-item.entity';
 import { Order, OrderStatus } from 'src/orders/entities/order.entity';
+import { OrderCanNotSeeError } from 'src/orders/orders.error';
+import { OrdersRepository } from 'src/orders/orders.repository';
 import { DishNotFoundError } from 'src/restaurants/dishes.error';
 import { DishesRepository } from 'src/restaurants/repositories/dishes.repository';
 import { RestaurantsRepository } from 'src/restaurants/repositories/restaurants.repository';
@@ -37,8 +39,7 @@ import { Repository } from 'typeorm';
 export class OrdersService {
   constructor(
     private readonly dishes: DishesRepository,
-    @InjectRepository(Order)
-    private readonly orders: Repository<Order>,
+    private readonly orders: OrdersRepository,
     @InjectRepository(OrderItem)
     private readonly orderItems: Repository<OrderItem>,
     @Inject(PUB_SUB) private readonly pubSub: PubSub,
@@ -164,22 +165,15 @@ export class OrdersService {
     user: User,
     { id: orderId }: GetOrderInput,
   ): Promise<GetOrderOutput> {
-    try {
-      const order = await this.orders.findOne({
-        where: { id: orderId },
-        relations: { restaurant: true },
-      });
+    const [error, order] = await this.orders.findByIdWithRestaurant(orderId);
 
-      if (!order) return { ok: false, error: 'Order not found' };
+    if (error) return { errors: [error] };
 
-      if (!this.canSeeOrder(user, order)) {
-        return { ok: false, error: "You can't see that" };
-      }
-
-      return { ok: true, order };
-    } catch (error) {
-      return { ok: false, error: "You can't see that" };
+    if (!this.canSeeOrder(user, order)) {
+      return { errors: [new OrderCanNotSeeError()] };
     }
+
+    return { order };
   }
 
   async editOrder(
