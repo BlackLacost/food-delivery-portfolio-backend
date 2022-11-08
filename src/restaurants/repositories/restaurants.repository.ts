@@ -1,5 +1,7 @@
+import { Injectable } from '@nestjs/common';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
-import { FindManyOptions, Repository } from 'typeorm';
+import { RestaurantNotFoundError } from 'src/restaurants/restaurants.error';
+import { DataSource, FindManyOptions, Repository } from 'typeorm';
 
 type RestaurantPagination = {
   results: Restaurant[];
@@ -7,23 +9,20 @@ type RestaurantPagination = {
   totalPages: number;
 };
 
-// @EntityRepository deprecated
-// https://github.com/leosuncin/nest-typeorm-custom-repository - i use this
-// https://gist.github.com/anchan828/9e569f076e7bc18daf21c652f7c3d012 - not try
-export interface RestaurantRepository extends Repository<Restaurant> {
-  this: Repository<Restaurant>;
+@Injectable()
+export class RestaurantsRepository extends Repository<Restaurant> {
+  constructor(private dataSource: DataSource) {
+    super(Restaurant, dataSource.createEntityManager());
+  }
 
-  findAndCountPagination(
-    options: Omit<FindManyOptions<Restaurant>, 'take | skip'>,
-    page?: number,
-    itemsOnPage?: number,
-  ): Promise<RestaurantPagination>;
-}
+  async findById(id: number): Promise<[RestaurantNotFoundError?, Restaurant?]> {
+    const restaurant = await this.findOneBy({ id });
+    if (!restaurant)
+      return [new RestaurantNotFoundError(`Ресторан с id ${id} не найден`)];
 
-export const customRestaurantRepositoryMethods: Pick<
-  RestaurantRepository,
-  'findAndCountPagination'
-> = {
+    return [undefined, restaurant];
+  }
+
   async findAndCountPagination(
     this: Repository<Restaurant>,
     options: Omit<FindManyOptions<Restaurant>, 'take | skip'>,
@@ -37,5 +36,5 @@ export const customRestaurantRepositoryMethods: Pick<
     });
     const totalPages = Math.ceil(totalResults / itemsOnPage);
     return { results, totalResults, totalPages };
-  },
-};
+  }
+}

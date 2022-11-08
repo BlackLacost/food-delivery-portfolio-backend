@@ -44,6 +44,7 @@ export class OrderResolver {
     @AuthUser() customer: User,
     @Args('input') createOrderInput: CreateOrderInput,
   ): Promise<CreateOrderOutput> {
+    console.log(customer, createOrderInput);
     return this.ordersService.createOrder(customer, createOrderInput);
   }
 

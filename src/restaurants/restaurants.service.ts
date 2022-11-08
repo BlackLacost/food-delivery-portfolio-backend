@@ -48,10 +48,9 @@ import {
   SearchRestaurantOutput,
 } from 'src/restaurants/dtos/search-restaurant.dto';
 import { Category } from 'src/restaurants/entities/category.entity';
-import { Dish } from 'src/restaurants/entities/dish.entity';
-import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
 import { CategoryRepository } from 'src/restaurants/repositories/category.repository';
-import { RestaurantRepository } from 'src/restaurants/repositories/restaurants.repository';
+import { DishesRepository } from 'src/restaurants/repositories/dishes.repository';
+import { RestaurantsRepository } from 'src/restaurants/repositories/restaurants.repository';
 import { User } from 'src/users/entities/user.entity';
 import { ILike, Repository } from 'typeorm';
 
@@ -60,14 +59,12 @@ const itemsOnPage = 25;
 @Injectable()
 export class RestaurantService {
   constructor(
-    @InjectRepository(Restaurant)
-    private readonly restaurants: RestaurantRepository,
     @InjectRepository(Category)
     private readonly categories: CategoryRepository,
-    @InjectRepository(Dish)
-    private readonly dishes: Repository<Dish>,
     @InjectRepository(Coords)
     private readonly coords: Repository<Coords>,
+    private readonly dishes: DishesRepository,
+    private readonly restaurants: RestaurantsRepository,
   ) {}
 
   async createRestaurant(

@@ -26,112 +26,110 @@ import {
 } from 'src/orders/dtos/get-orders.dto';
 import { OrderItem } from 'src/orders/entities/order-item.entity';
 import { Order, OrderStatus } from 'src/orders/entities/order.entity';
-import { Dish } from 'src/restaurants/entities/dish.entity';
-import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
-import { RestaurantRepository } from 'src/restaurants/repositories/restaurants.repository';
+import { DishNotFoundError } from 'src/restaurants/dishes.error';
+import { DishesRepository } from 'src/restaurants/repositories/dishes.repository';
+import { RestaurantsRepository } from 'src/restaurants/repositories/restaurants.repository';
+import { RestaurantNotFoundError } from 'src/restaurants/restaurants.error';
 import { User, UserRole } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
 
 @Injectable()
 export class OrdersService {
   constructor(
+    private readonly dishes: DishesRepository,
     @InjectRepository(Order)
     private readonly orders: Repository<Order>,
     @InjectRepository(OrderItem)
     private readonly orderItems: Repository<OrderItem>,
-    @InjectRepository(Dish)
-    private readonly dishes: Repository<Dish>,
-    @InjectRepository(Restaurant)
-    private readonly restaurants: RestaurantRepository,
     @Inject(PUB_SUB) private readonly pubSub: PubSub,
+    private readonly restaurants: RestaurantsRepository,
   ) {}
 
   async createOrder(
     customer: User,
     { restaurantId, items }: CreateOrderInput,
   ): Promise<CreateOrderOutput> {
-    try {
-      const restaurant = await this.restaurants.findOneBy({ id: restaurantId });
+    let errors: null | [RestaurantNotFoundError | DishNotFoundError] = null;
 
-      if (!restaurant) return { ok: false, error: 'Restaurant not found' };
+    const [error, restaurant] = await this.restaurants.findById(restaurantId);
+    if (error) {
+      errors = [error];
+    }
 
-      let orderFinalPrice = 0;
-      const orderItems: OrderItem[] = [];
+    let orderFinalPrice = 0;
+    const orderItems: OrderItem[] = [];
 
-      for (const item of items) {
-        const dish = await this.dishes.findOneBy({ id: item.dishId });
-        if (!dish) {
-          return { ok: false, error: 'Dish not found' };
-        }
+    for (const item of items) {
+      const [error, dish] = await this.dishes.findById(item.dishId);
 
-        let dishFinalPrice = dish.price;
+      if (error) {
+        errors.push(error);
+        continue;
+      }
 
-        if (item.options) {
-          for (const itemOption of item.options) {
-            const dishOption = dish.options.find(
-              (dishOption) => dishOption.name === itemOption.name,
-            );
+      let dishFinalPrice = dish.price;
 
-            if (dishOption) {
-              if (dishOption.extra) {
-                dishFinalPrice += dishOption.extra;
-              } else {
-                const dishOptionChoice = dishOption.choices.find(
-                  (choice) => choice.name === itemOption.choice,
-                );
-                if (dishOptionChoice.extra) {
-                  dishFinalPrice += dishOptionChoice.extra;
-                }
+      if (item.options) {
+        for (const itemOption of item.options) {
+          const dishOption = dish.options.find(
+            (dishOption) => dishOption.name === itemOption.name,
+          );
+
+          if (dishOption) {
+            if (dishOption.extra) {
+              dishFinalPrice += dishOption.extra;
+            } else {
+              const dishOptionChoice = dishOption.choices.find(
+                (choice) => choice.name === itemOption.choice,
+              );
+              if (dishOptionChoice.extra) {
+                dishFinalPrice += dishOptionChoice.extra;
               }
             }
           }
         }
-
-        orderFinalPrice += dishFinalPrice;
-        const orderItem = await this.orderItems.save(
-          this.orderItems.create({
-            dish,
-            options: item.options,
-          }),
-        );
-        orderItems.push(orderItem);
       }
 
-      const order = await this.orders.save(
-        this.orders.create({
-          customer,
-          restaurant,
-          total: orderFinalPrice,
-          items: orderItems,
+      orderFinalPrice += dishFinalPrice;
+      const orderItem = await this.orderItems.save(
+        this.orderItems.create({
+          dish,
+          options: item.options,
         }),
       );
-      await this.pubSub.publish(NEW_PENDING_ORDER, {
-        pendingOrders: { order, ownerId: restaurant.ownerId },
-      });
-
-      return { ok: true, orderId: order.id };
-    } catch (error) {
-      return { ok: false, error: 'Could not create order' };
+      orderItems.push(orderItem);
     }
+
+    if (errors?.length > 0) return { errors };
+
+    const order = await this.orders.save(
+      this.orders.create({
+        customer,
+        restaurant,
+        total: orderFinalPrice,
+        items: orderItems,
+      }),
+    );
+    await this.pubSub.publish(NEW_PENDING_ORDER, {
+      pendingOrders: { order, ownerId: restaurant.ownerId },
+    });
+
+    return { order };
   }
 
   async getOrders(
     user: User,
     { status }: GetOrdersInput,
   ): Promise<GetOrdersOutput> {
-    try {
-      const orders = await this.orders.findBy({
-        ...(user.role === UserRole.Client && { customer: { id: user.id } }),
-        // ...(user.role === UserRole.Delivery && { driver: { id: user.id } }),
-        ...(user.role === UserRole.Owner && {
-          restaurant: { owner: { id: user.id } },
-        }),
-        ...(status && { status }),
-      });
-      return { ok: true, orders };
-    } catch (error) {
-      return { ok: false, error: 'Could not get orders' };
-    }
+    const orders = await this.orders.findBy({
+      ...(user.role === UserRole.Client && { customer: { id: user.id } }),
+      // ...(user.role === UserRole.Delivery && { driver: { id: user.id } }),
+      ...(user.role === UserRole.Owner && {
+        restaurant: { owner: { id: user.id } },
+      }),
+      ...(status && { status }),
+    });
+    return { orders };
   }
 
   canSeeOrder(user: User, order: Order): boolean {
