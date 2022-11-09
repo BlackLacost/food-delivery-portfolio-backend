@@ -7,7 +7,7 @@ import {
 } from '@nestjs/graphql';
 import { OrderOutput } from 'src/orders/dtos/order.dto';
 import { Order } from 'src/orders/entities/order.entity';
-import { OrderNotFoundError } from 'src/orders/orders.error';
+import { OrderNotFoundError } from 'src/orders/errors/orders.error';
 
 @InputType()
 export class AcceptOrderInput extends PickType(Order, ['id']) {}

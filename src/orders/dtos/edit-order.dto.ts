@@ -10,7 +10,7 @@ import { Order } from 'src/orders/entities/order.entity';
 import {
   OrderCanNotSeeError,
   OrderNotFoundError,
-} from 'src/orders/orders.error';
+} from 'src/orders/errors/orders.error';
 
 @InputType()
 export class EditOrderInput extends PickType(Order, ['id', 'status']) {}

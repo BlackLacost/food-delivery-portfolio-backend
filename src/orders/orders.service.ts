@@ -1,5 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { PubSub } from 'graphql-subscriptions';
 import {
   NEW_COOKED_ORDER,
@@ -17,20 +16,19 @@ import { Order, OrderStatus } from 'src/orders/entities/order.entity';
 import {
   OrderCanNotEditError,
   OrderCanNotSeeError,
-} from 'src/orders/orders.error';
-import { OrdersRepository } from 'src/orders/orders.repository';
+} from 'src/orders/errors/orders.error';
+import { OrderItemRepository } from 'src/orders/repositories/order-item.repository';
+import { OrdersRepository } from 'src/orders/repositories/orders.repository';
 import { DishesRepository } from 'src/restaurants/repositories/dishes.repository';
 import { RestaurantsRepository } from 'src/restaurants/repositories/restaurants.repository';
 import { User, UserRole } from 'src/users/entities/user.entity';
-import { Repository } from 'typeorm';
 
 @Injectable()
 export class OrdersService {
   constructor(
     private readonly dishes: DishesRepository,
     private readonly orders: OrdersRepository,
-    @InjectRepository(OrderItem)
-    private readonly orderItems: Repository<OrderItem>,
+    private readonly orderItems: OrderItemRepository,
     @Inject(PUB_SUB) private readonly pubSub: PubSub,
     private readonly restaurants: RestaurantsRepository,
   ) {}
@@ -71,23 +69,20 @@ export class OrdersService {
       }
 
       orderFinalPrice += dishFinalPrice;
-      const orderItem = await this.orderItems.save(
-        this.orderItems.create({
-          dish,
-          options: item.options,
-        }),
-      );
+      const orderItem = await this.orderItems.createAndSave({
+        dish,
+        options: item.options,
+      });
       orderItems.push(orderItem);
     }
 
-    const order = await this.orders.save(
-      this.orders.create({
-        customer,
-        restaurant,
-        total: orderFinalPrice,
-        items: orderItems,
-      }),
-    );
+    const order = await this.orders.createAndSave({
+      customer,
+      restaurant,
+      total: orderFinalPrice,
+      items: orderItems,
+    });
+
     await this.pubSub.publish(NEW_PENDING_ORDER, {
       pendingOrders: { order, ownerId: restaurant.ownerId },
     });
