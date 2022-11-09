@@ -9,10 +9,9 @@ export class DishesRepository extends Repository<Dish> {
     super(Dish, dataSource.createEntityManager());
   }
 
-  async findById(id: number): Promise<[DishNotFoundError?, Dish?]> {
+  async findById(id: number): Promise<Dish> {
     const dish = await this.findOneBy({ id });
-    if (!dish) return [new DishNotFoundError(`Блюдо с id ${id} не найдено`)];
-
-    return [undefined, dish];
+    if (!dish) throw new DishNotFoundError(`Блюдо с id ${id} не найдено`);
+    return dish;
   }
 }

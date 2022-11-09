@@ -7,31 +7,20 @@ import {
   NEW_PENDING_ORDER,
   PUB_SUB,
 } from 'src/common/common.constants';
-import {
-  AcceptOrderInput,
-  AcceptOrderOutput,
-} from 'src/orders/dtos/accept-order.dto';
-import {
-  CreateOrderInput,
-  CreateOrderOutput,
-} from 'src/orders/dtos/create-order.dto';
-import {
-  EditOrderInput,
-  EditOrderOutput,
-} from 'src/orders/dtos/edit-order.dto';
-import { GetOrderInput, GetOrderOutput } from 'src/orders/dtos/get-order.dto';
-import {
-  GetOrdersInput,
-  GetOrdersOutput,
-} from 'src/orders/dtos/get-orders.dto';
+import { AcceptOrderInput } from 'src/orders/dtos/accept-order.dto';
+import { CreateOrderInput } from 'src/orders/dtos/create-order.dto';
+import { EditOrderInput } from 'src/orders/dtos/edit-order.dto';
+import { GetOrderInput } from 'src/orders/dtos/get-order.dto';
+import { GetOrdersInput } from 'src/orders/dtos/get-orders.dto';
 import { OrderItem } from 'src/orders/entities/order-item.entity';
 import { Order, OrderStatus } from 'src/orders/entities/order.entity';
-import { OrderCanNotSeeError } from 'src/orders/orders.error';
+import {
+  OrderCanNotEditError,
+  OrderCanNotSeeError,
+} from 'src/orders/orders.error';
 import { OrdersRepository } from 'src/orders/orders.repository';
-import { DishNotFoundError } from 'src/restaurants/dishes.error';
 import { DishesRepository } from 'src/restaurants/repositories/dishes.repository';
 import { RestaurantsRepository } from 'src/restaurants/repositories/restaurants.repository';
-import { RestaurantNotFoundError } from 'src/restaurants/restaurants.error';
 import { User, UserRole } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
 
@@ -49,24 +38,14 @@ export class OrdersService {
   async createOrder(
     customer: User,
     { restaurantId, items }: CreateOrderInput,
-  ): Promise<CreateOrderOutput> {
-    let errors: null | [RestaurantNotFoundError | DishNotFoundError] = null;
-
-    const [error, restaurant] = await this.restaurants.findById(restaurantId);
-    if (error) {
-      errors = [error];
-    }
+  ): Promise<Order> {
+    const restaurant = await this.restaurants.findById(restaurantId);
 
     let orderFinalPrice = 0;
     const orderItems: OrderItem[] = [];
 
     for (const item of items) {
-      const [error, dish] = await this.dishes.findById(item.dishId);
-
-      if (error) {
-        errors.push(error);
-        continue;
-      }
+      const dish = await this.dishes.findById(item.dishId);
 
       let dishFinalPrice = dish.price;
 
@@ -101,8 +80,6 @@ export class OrdersService {
       orderItems.push(orderItem);
     }
 
-    if (errors?.length > 0) return { errors };
-
     const order = await this.orders.save(
       this.orders.create({
         customer,
@@ -115,14 +92,11 @@ export class OrdersService {
       pendingOrders: { order, ownerId: restaurant.ownerId },
     });
 
-    return { order };
+    return order;
   }
 
-  async getOrders(
-    user: User,
-    { status }: GetOrdersInput,
-  ): Promise<GetOrdersOutput> {
-    const orders = await this.orders.findBy({
+  async getOrders(user: User, { status }: GetOrdersInput): Promise<Order[]> {
+    return this.orders.findBy({
       ...(user.role === UserRole.Client && { customer: { id: user.id } }),
       // ...(user.role === UserRole.Delivery && { driver: { id: user.id } }),
       ...(user.role === UserRole.Owner && {
@@ -130,7 +104,6 @@ export class OrdersService {
       }),
       ...(status && { status }),
     });
-    return { orders };
   }
 
   canSeeOrder(user: User, order: Order): boolean {
@@ -161,92 +134,69 @@ export class OrdersService {
     return canSee;
   }
 
-  async getOrder(
-    user: User,
-    { id: orderId }: GetOrderInput,
-  ): Promise<GetOrderOutput> {
-    const [error, order] = await this.orders.findByIdWithRestaurant(orderId);
-
-    if (error) return { errors: [error] };
+  async getOrder(user: User, { id: orderId }: GetOrderInput): Promise<Order> {
+    const order = await this.orders.findById(orderId, {
+      relations: { restaurant: true },
+    });
 
     if (!this.canSeeOrder(user, order)) {
-      return { errors: [new OrderCanNotSeeError()] };
+      throw new OrderCanNotSeeError();
     }
-
-    return { order };
+    return order;
   }
 
   async editOrder(
     user: User,
     { id: orderId, status }: EditOrderInput,
-  ): Promise<EditOrderOutput> {
-    try {
-      const order = await this.orders.findOne({
-        where: { id: orderId },
-      });
+  ): Promise<Order> {
+    const order = await this.orders.findById(orderId);
 
-      if (!order) return { ok: false, error: 'Order not found' };
+    if (!this.canSeeOrder(user, order)) throw new OrderCanNotSeeError();
 
-      if (!this.canSeeOrder(user, order)) {
-        return { ok: false, error: "You can't see that" };
-      }
+    let canEdit = true;
+    if (user.role === UserRole.Client) {
+      canEdit = false;
+    }
 
-      let canEdit = true;
-      if (user.role === UserRole.Client) {
+    if (user.role === UserRole.Owner) {
+      if (status !== OrderStatus.Cooking && status !== OrderStatus.Cooked) {
         canEdit = false;
       }
-
-      if (user.role === UserRole.Owner) {
-        if (status !== OrderStatus.Cooking && status !== OrderStatus.Cooked) {
-          canEdit = false;
-        }
-      }
-
-      if (user.role === UserRole.Delivery) {
-        if (
-          status !== OrderStatus.Accepted &&
-          status !== OrderStatus.Delivered
-        ) {
-          canEdit = false;
-        }
-      }
-
-      if (!canEdit) return { ok: false, error: "You can't do that" };
-
-      order.status = status;
-      const newOrder = await this.orders.save(order);
-
-      if (user.role === UserRole.Owner) {
-        if (status === OrderStatus.Cooked)
-          await this.pubSub.publish(NEW_COOKED_ORDER, {
-            cookedOrders: newOrder,
-          });
-      }
-      await this.pubSub.publish(NEW_ORDER_UPDATE, { orderUpdates: newOrder });
-
-      return { ok: true };
-    } catch (error) {
-      return { ok: false, error: 'You could not do that' };
     }
+
+    if (user.role === UserRole.Delivery) {
+      if (status !== OrderStatus.Accepted && status !== OrderStatus.Delivered) {
+        canEdit = false;
+      }
+    }
+
+    if (!canEdit) throw new OrderCanNotEditError();
+
+    order.status = status;
+    const newOrder = await this.orders.save(order);
+
+    if (user.role === UserRole.Owner) {
+      if (status === OrderStatus.Cooked)
+        await this.pubSub.publish(NEW_COOKED_ORDER, {
+          cookedOrders: newOrder,
+        });
+    }
+    await this.pubSub.publish(NEW_ORDER_UPDATE, { orderUpdates: newOrder });
+
+    return newOrder;
   }
 
   async acceptOrder(
     driver: User,
     { id: orderId }: AcceptOrderInput,
-  ): Promise<AcceptOrderOutput> {
-    try {
-      const order = await this.orders.findOneBy({ id: orderId });
+  ): Promise<Order> {
+    const order = await this.orders.findById(orderId);
 
-      if (!order) return { ok: false, error: 'Order not found' };
+    order.driver = driver;
+    order.status = OrderStatus.Accepted;
+    const newOrder = await this.orders.save(order);
 
-      order.driver = driver;
-      order.status = OrderStatus.Accepted;
-      const newOrder = await this.orders.save(order);
-
-      await this.pubSub.publish(NEW_ORDER_UPDATE, { orderUpdates: newOrder });
-      return { ok: true, order: newOrder };
-    } catch (error) {
-      return { ok: false, error: 'Could not take order' };
-    }
+    await this.pubSub.publish(NEW_ORDER_UPDATE, { orderUpdates: newOrder });
+    return newOrder;
   }
 }

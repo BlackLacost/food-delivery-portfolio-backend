@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Order } from 'src/orders/entities/order.entity';
 import { OrderNotFoundError } from 'src/orders/orders.error';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, FindOneOptions, Repository } from 'typeorm';
 
 @Injectable()
 export class OrdersRepository extends Repository<Order> {
@@ -9,15 +9,12 @@ export class OrdersRepository extends Repository<Order> {
     super(Order, dataSource.createEntityManager());
   }
 
-  async findByIdWithRestaurant(
+  async findById(
     id: number,
-  ): Promise<[OrderNotFoundError?, Order?]> {
-    const order = await this.findOne({
-      where: { id },
-      relations: { restaurant: true },
-    });
-    if (!order) return [new OrderNotFoundError(`Заказ с id ${id} не найден`)];
-
-    return [undefined, order];
+    options?: Pick<FindOneOptions<Order>, 'relations'>,
+  ): Promise<Order> {
+    const order = await this.findOne({ where: { id }, ...options });
+    if (!order) throw new OrderNotFoundError(`Заказ с id ${id} не найден`);
+    return order;
   }
 }

@@ -5,6 +5,7 @@ import {
   ObjectType,
   PickType,
 } from '@nestjs/graphql';
+import { OrderOutput } from 'src/orders/dtos/order.dto';
 import { Order } from 'src/orders/entities/order.entity';
 import {
   OrderCanNotSeeError,
@@ -14,16 +15,13 @@ import {
 @InputType()
 export class GetOrderInput extends PickType(Order, ['id']) {}
 
-const GetOrderError = createUnionType({
+export const GetOrderError = createUnionType({
   name: 'GetOrderError',
   types: () => [OrderNotFoundError, OrderCanNotSeeError] as const,
 });
 
 @ObjectType()
-export class GetOrderOutput {
-  @Field((type) => Order, { nullable: true })
-  order?: Order;
-
-  @Field((type) => [GetOrderError], { nullable: true })
-  errors?: [typeof GetOrderError];
+export class GetOrderOutput extends OrderOutput {
+  @Field((type) => GetOrderError, { nullable: true })
+  error?: typeof GetOrderError;
 }

@@ -10,6 +10,13 @@ export class OrderNotFoundError extends OrderError {}
 @ObjectType({ implements: () => [OrderError] })
 export class OrderCanNotSeeError extends OrderError {
   constructor() {
-    super('Ты не можешь видеть это');
+    super('Ты не можешь видеть это заказ');
+  }
+}
+
+@ObjectType({ implements: () => [OrderError] })
+export class OrderCanNotEditError extends OrderError {
+  constructor() {
+    super('Ты не можешь изменить этот заказ');
   }
 }

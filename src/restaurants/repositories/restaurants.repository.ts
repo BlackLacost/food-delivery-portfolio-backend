@@ -15,12 +15,12 @@ export class RestaurantsRepository extends Repository<Restaurant> {
     super(Restaurant, dataSource.createEntityManager());
   }
 
-  async findById(id: number): Promise<[RestaurantNotFoundError?, Restaurant?]> {
+  async findById(id: number): Promise<Restaurant> {
     const restaurant = await this.findOneBy({ id });
-    if (!restaurant)
-      return [new RestaurantNotFoundError(`Ресторан с id ${id} не найден`)];
-
-    return [undefined, restaurant];
+    if (!restaurant) {
+      throw new RestaurantNotFoundError(`Ресторан с id ${id} не найден`);
+    }
+    return restaurant;
   }
 
   async findAndCountPagination(

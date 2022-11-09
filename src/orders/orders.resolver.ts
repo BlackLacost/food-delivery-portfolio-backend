@@ -44,8 +44,9 @@ export class OrderResolver {
     @AuthUser() customer: User,
     @Args('input') createOrderInput: CreateOrderInput,
   ): Promise<CreateOrderOutput> {
-    console.log(customer, createOrderInput);
-    return this.ordersService.createOrder(customer, createOrderInput);
+    return {
+      order: await this.ordersService.createOrder(customer, createOrderInput),
+    };
   }
 
   @Query((returns) => GetOrdersOutput)
@@ -54,7 +55,7 @@ export class OrderResolver {
     @AuthUser() user: User,
     @Args('input') getOrdersInput: GetOrdersInput,
   ): Promise<GetOrdersOutput> {
-    return this.ordersService.getOrders(user, getOrdersInput);
+    return { orders: await this.ordersService.getOrders(user, getOrdersInput) };
   }
 
   @Query((returns) => GetOrderOutput)
@@ -63,7 +64,7 @@ export class OrderResolver {
     @AuthUser() user: User,
     @Args('input') getOrderInput: GetOrderInput,
   ): Promise<GetOrderOutput> {
-    return this.ordersService.getOrder(user, getOrderInput);
+    return { order: await this.ordersService.getOrder(user, getOrderInput) };
   }
 
   @Mutation((returns) => EditOrderOutput)
@@ -72,7 +73,7 @@ export class OrderResolver {
     @AuthUser() user: User,
     @Args('input') editOrderInput: EditOrderInput,
   ): Promise<EditOrderOutput> {
-    return this.ordersService.editOrder(user, editOrderInput);
+    return { order: await this.ordersService.editOrder(user, editOrderInput) };
   }
 
   @Subscription((returns) => Order, {
@@ -113,10 +114,12 @@ export class OrderResolver {
 
   @Mutation((returns) => AcceptOrderOutput)
   @Role(['Delivery'])
-  acceptOrder(
+  async acceptOrder(
     @AuthUser() driver: User,
     @Args('input') acceptOrderInput: AcceptOrderInput,
   ): Promise<AcceptOrderOutput> {
-    return this.ordersService.acceptOrder(driver, acceptOrderInput);
+    return {
+      order: await this.ordersService.acceptOrder(driver, acceptOrderInput),
+    };
   }
 }

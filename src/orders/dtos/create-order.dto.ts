@@ -5,8 +5,8 @@ import {
   Int,
   ObjectType,
 } from '@nestjs/graphql';
+import { OrderOutput } from 'src/orders/dtos/order.dto';
 import { OrderItemOption } from 'src/orders/entities/order-item.entity';
-import { Order } from 'src/orders/entities/order.entity';
 import { DishNotFoundError } from 'src/restaurants/dishes.error';
 import { RestaurantNotFoundError } from 'src/restaurants/restaurants.error';
 
@@ -34,10 +34,7 @@ const CreateOrderError = createUnionType({
 });
 
 @ObjectType()
-export class CreateOrderOutput {
-  @Field((type) => Order, { nullable: true })
-  order?: Order;
-
-  @Field((type) => [CreateOrderError], { nullable: true })
-  errors?: [typeof CreateOrderError];
+export class CreateOrderOutput extends OrderOutput {
+  @Field((type) => CreateOrderError, { nullable: true })
+  error?: typeof CreateOrderError;
 }
