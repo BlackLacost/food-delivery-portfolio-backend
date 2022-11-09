@@ -59,12 +59,42 @@ export class OrderResolver {
   }
 
   @Query((returns) => GetOrderOutput)
-  @Role(['Any'])
-  async getOrder(
+  @Role(['Client'])
+  async getClientOrder(
     @AuthUser() user: User,
     @Args('input') getOrderInput: GetOrderInput,
   ): Promise<GetOrderOutput> {
-    return { order: await this.ordersService.getOrder(user, getOrderInput) };
+    const order = await this.ordersService.getClientOrder(
+      user.id,
+      getOrderInput,
+    );
+    return { order };
+  }
+
+  @Query((returns) => GetOrderOutput)
+  @Role(['Owner'])
+  async getOwnerOrder(
+    @AuthUser() user: User,
+    @Args('input') getOrderInput: GetOrderInput,
+  ): Promise<GetOrderOutput> {
+    const order = await this.ordersService.getOwnerOrder(
+      user.id,
+      getOrderInput,
+    );
+    return { order };
+  }
+
+  @Query((returns) => GetOrderOutput)
+  @Role(['Delivery'])
+  async getDriverOrder(
+    @AuthUser() user: User,
+    @Args('input') getOrderInput: GetOrderInput,
+  ): Promise<GetOrderOutput> {
+    const order = await this.ordersService.getDriverOrder(
+      user.id,
+      getOrderInput,
+    );
+    return { order };
   }
 
   @Mutation((returns) => EditOrderOutput)

@@ -16,6 +16,7 @@ import { Order, OrderStatus } from 'src/orders/entities/order.entity';
 import {
   OrderCanNotEditError,
   OrderCanNotSeeError,
+  OrderNotFoundError,
 } from 'src/orders/errors/orders.error';
 import { OrderItemRepository } from 'src/orders/repositories/order-item.repository';
 import { OrdersRepository } from 'src/orders/repositories/orders.repository';
@@ -101,6 +102,50 @@ export class OrdersService {
     });
   }
 
+  async getClientOrder(
+    userId: number,
+    { id: orderId }: GetOrderInput,
+  ): Promise<Order> {
+    const order = await this.orders.findOne({
+      where: { customer: { id: userId }, id: orderId },
+      relations: { restaurant: true },
+    });
+    if (!order)
+      throw new OrderNotFoundError(
+        `Заказ ${orderId} клиента ${userId} не найден`,
+      );
+    return order;
+  }
+
+  async getOwnerOrder(
+    userId: number,
+    { id: orderId }: GetOrderInput,
+  ): Promise<Order> {
+    const order = await this.orders.findOne({
+      where: { restaurant: { owner: { id: userId }, id: orderId } },
+    });
+    if (!order)
+      throw new OrderNotFoundError(
+        `Заказ ${orderId} владельца ${userId} не найден`,
+      );
+    return order;
+  }
+
+  async getDriverOrder(
+    userId: number,
+    { id: orderId }: GetOrderInput,
+  ): Promise<Order> {
+    const order = await this.orders.findOne({
+      where: { driver: { id: userId }, id: orderId },
+      relations: { restaurant: true },
+    });
+    if (!order)
+      throw new OrderNotFoundError(
+        `Заказ ${orderId} водителя ${userId} не найден`,
+      );
+    return order;
+  }
+
   canSeeOrder(user: User, order: Order): boolean {
     // let canSee = true;
     // if (user.role === UserRole.Client && order.customerId !== user.id) {
@@ -127,17 +172,6 @@ export class OrdersService {
       canSee = true;
     }
     return canSee;
-  }
-
-  async getOrder(user: User, { id: orderId }: GetOrderInput): Promise<Order> {
-    const order = await this.orders.findById(orderId, {
-      relations: { restaurant: true },
-    });
-
-    if (!this.canSeeOrder(user, order)) {
-      throw new OrderCanNotSeeError();
-    }
-    return order;
   }
 
   async editOrder(
@@ -186,6 +220,7 @@ export class OrdersService {
     { id: orderId }: AcceptOrderInput,
   ): Promise<Order> {
     const order = await this.orders.findById(orderId);
+    console.log(order);
 
     order.driver = driver;
     order.status = OrderStatus.Accepted;
