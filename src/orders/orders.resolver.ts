@@ -27,6 +27,10 @@ import {
   GetOrdersOutput,
 } from 'src/orders/dtos/get-orders.dto';
 import { OrderUpdatesInput } from 'src/orders/dtos/order-updates.dto';
+import {
+  SetRestaurantOrderStatusInput,
+  SetRestaurantOrderStatusOrderOutput,
+} from 'src/orders/dtos/set-restaurant-order-status.dto';
 import { Order } from 'src/orders/entities/order.entity';
 import { OrdersService } from 'src/orders/orders.service';
 import { User } from 'src/users/entities/user.entity';
@@ -62,12 +66,9 @@ export class OrderResolver {
   @Role(['Client'])
   async getClientOrder(
     @AuthUser() user: User,
-    @Args('input') getOrderInput: GetOrderInput,
+    @Args('input') { id: orderId }: GetOrderInput,
   ): Promise<GetOrderOutput> {
-    const order = await this.ordersService.getClientOrder(
-      user.id,
-      getOrderInput,
-    );
+    const order = await this.ordersService.getClientOrder(user.id, orderId);
     return { order };
   }
 
@@ -75,12 +76,9 @@ export class OrderResolver {
   @Role(['Owner'])
   async getOwnerOrder(
     @AuthUser() user: User,
-    @Args('input') getOrderInput: GetOrderInput,
+    @Args('input') { id: ownerId }: GetOrderInput,
   ): Promise<GetOrderOutput> {
-    const order = await this.ordersService.getOwnerOrder(
-      user.id,
-      getOrderInput,
-    );
+    const order = await this.ordersService.getOwnerOrder(user.id, ownerId);
     return { order };
   }
 
@@ -88,11 +86,22 @@ export class OrderResolver {
   @Role(['Delivery'])
   async getDriverOrder(
     @AuthUser() user: User,
-    @Args('input') getOrderInput: GetOrderInput,
+    @Args('input') { id: orderId }: GetOrderInput,
   ): Promise<GetOrderOutput> {
-    const order = await this.ordersService.getDriverOrder(
-      user.id,
-      getOrderInput,
+    const order = await this.ordersService.getDriverOrder(user.id, orderId);
+    return { order };
+  }
+
+  @Mutation((returns) => SetRestaurantOrderStatusOrderOutput)
+  @Role(['Owner'])
+  async setRestaurantOrderStatus(
+    @AuthUser() { id: userId }: User,
+    @Args('input') { id: orderId, status }: SetRestaurantOrderStatusInput,
+  ): Promise<SetRestaurantOrderStatusOrderOutput> {
+    const order = await this.ordersService.setRestaurantOrderStatus(
+      userId,
+      orderId,
+      status,
     );
     return { order };
   }

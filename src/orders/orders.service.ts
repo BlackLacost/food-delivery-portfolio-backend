@@ -9,10 +9,10 @@ import {
 import { AcceptOrderInput } from 'src/orders/dtos/accept-order.dto';
 import { CreateOrderInput } from 'src/orders/dtos/create-order.dto';
 import { EditOrderInput } from 'src/orders/dtos/edit-order.dto';
-import { GetOrderInput } from 'src/orders/dtos/get-order.dto';
 import { GetOrdersInput } from 'src/orders/dtos/get-orders.dto';
 import { OrderItem } from 'src/orders/entities/order-item.entity';
 import { Order, OrderStatus } from 'src/orders/entities/order.entity';
+import { RestaurantOrderStatusError } from 'src/orders/errors/order-status.error';
 import {
   OrderCanNotEditError,
   OrderCanNotSeeError,
@@ -102,10 +102,7 @@ export class OrdersService {
     });
   }
 
-  async getClientOrder(
-    userId: number,
-    { id: orderId }: GetOrderInput,
-  ): Promise<Order> {
+  async getClientOrder(userId: number, orderId: number): Promise<Order> {
     const order = await this.orders.findOne({
       where: { customer: { id: userId }, id: orderId },
       relations: { restaurant: true },
@@ -117,12 +114,9 @@ export class OrdersService {
     return order;
   }
 
-  async getOwnerOrder(
-    userId: number,
-    { id: orderId }: GetOrderInput,
-  ): Promise<Order> {
+  async getOwnerOrder(userId: number, orderId: number): Promise<Order> {
     const order = await this.orders.findOne({
-      where: { restaurant: { owner: { id: userId }, id: orderId } },
+      where: { restaurant: { owner: { id: userId } }, id: orderId },
     });
     if (!order)
       throw new OrderNotFoundError(
@@ -131,10 +125,7 @@ export class OrdersService {
     return order;
   }
 
-  async getDriverOrder(
-    userId: number,
-    { id: orderId }: GetOrderInput,
-  ): Promise<Order> {
+  async getDriverOrder(userId: number, orderId: number): Promise<Order> {
     const order = await this.orders.findOne({
       where: { driver: { id: userId }, id: orderId },
       relations: { restaurant: true },
@@ -172,6 +163,27 @@ export class OrdersService {
       canSee = true;
     }
     return canSee;
+  }
+
+  async setRestaurantOrderStatus(
+    userId: number,
+    orderId: number,
+    status: OrderStatus,
+  ): Promise<Order> {
+    const order = await this.getOwnerOrder(userId, orderId);
+    if (!(status === OrderStatus.Cooking || status === OrderStatus.Cooked)) {
+      throw new RestaurantOrderStatusError();
+    }
+    order.status = status;
+    const updatedOrder = await this.orders.save(order);
+
+    if (status === OrderStatus.Cooked) {
+      await this.pubSub.publish(NEW_COOKED_ORDER, {
+        cookedOrders: updatedOrder,
+      });
+    }
+    await this.pubSub.publish(NEW_ORDER_UPDATE, { orderUpdates: updatedOrder });
+    return updatedOrder;
   }
 
   async editOrder(
