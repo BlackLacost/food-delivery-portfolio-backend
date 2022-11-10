@@ -28,6 +28,10 @@ import {
 } from 'src/orders/dtos/get-orders.dto';
 import { OrderUpdatesInput } from 'src/orders/dtos/order-updates.dto';
 import {
+  SetDriverOrderStatusInput,
+  SetDriverOrderStatusOutput,
+} from 'src/orders/dtos/set-driver-order-status.dto';
+import {
   SetRestaurantOrderStatusInput,
   SetRestaurantOrderStatusOutput,
 } from 'src/orders/dtos/set-restaurant-order-status.dto';
@@ -89,6 +93,20 @@ export class OrderResolver {
     @Args('input') { id: orderId }: GetOrderInput,
   ): Promise<GetOrderOutput> {
     const order = await this.ordersService.getDriverOrder(user.id, orderId);
+    return { order };
+  }
+
+  @Mutation((returns) => SetDriverOrderStatusOutput)
+  @Role(['Driver'])
+  async setDriverOrderStatus(
+    @AuthUser() { id: userId }: User,
+    @Args('input') { id: orderId, status }: SetDriverOrderStatusInput,
+  ): Promise<SetDriverOrderStatusOutput> {
+    const order = await this.ordersService.setDriverOrderStatus(
+      userId,
+      orderId,
+      status,
+    );
     return { order };
   }
 

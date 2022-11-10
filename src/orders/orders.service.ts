@@ -12,7 +12,10 @@ import { EditOrderInput } from 'src/orders/dtos/edit-order.dto';
 import { GetOrdersInput } from 'src/orders/dtos/get-orders.dto';
 import { OrderItem } from 'src/orders/entities/order-item.entity';
 import { Order, OrderStatus } from 'src/orders/entities/order.entity';
-import { RestaurantOrderStatusError } from 'src/orders/errors/order-status.error';
+import {
+  DriverOrderStatusError,
+  RestaurantOrderStatusError,
+} from 'src/orders/errors/order-status.error';
 import {
   OrderCanNotEditError,
   OrderCanNotSeeError,
@@ -186,6 +189,28 @@ export class OrdersService {
     return updatedOrder;
   }
 
+  async setDriverOrderStatus(
+    userId: number,
+    orderId: number,
+    status: OrderStatus,
+  ): Promise<Order> {
+    const order = await this.getDriverOrder(userId, orderId);
+
+    if (
+      status !== OrderStatus.Accepted &&
+      status !== OrderStatus.PickedUp &&
+      status !== OrderStatus.Delivered
+    ) {
+      throw new DriverOrderStatusError();
+    }
+
+    order.status = status;
+    const updatedOrder = await this.orders.save(order);
+
+    await this.pubSub.publish(NEW_ORDER_UPDATE, { orderUpdates: updatedOrder });
+    return updatedOrder;
+  }
+
   async editOrder(
     user: User,
     { id: orderId, status }: EditOrderInput,
@@ -232,7 +257,6 @@ export class OrdersService {
     { id: orderId }: AcceptOrderInput,
   ): Promise<Order> {
     const order = await this.orders.findById(orderId);
-    console.log(order);
 
     order.driver = driver;
     order.status = OrderStatus.Accepted;
