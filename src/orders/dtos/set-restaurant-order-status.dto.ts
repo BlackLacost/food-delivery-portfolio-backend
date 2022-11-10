@@ -29,7 +29,7 @@ export const SetRestaurantOrderStatusError = createUnionType({
 });
 
 @ObjectType()
-export class SetRestaurantOrderStatusOrderOutput extends OrderOutput {
+export class SetRestaurantOrderStatusOutput extends OrderOutput {
   @Field((type) => RestaurantOrderStatusError, { nullable: true })
   error?: typeof RestaurantOrderStatusError;
 }

@@ -29,7 +29,7 @@ import {
 import { OrderUpdatesInput } from 'src/orders/dtos/order-updates.dto';
 import {
   SetRestaurantOrderStatusInput,
-  SetRestaurantOrderStatusOrderOutput,
+  SetRestaurantOrderStatusOutput,
 } from 'src/orders/dtos/set-restaurant-order-status.dto';
 import { Order } from 'src/orders/entities/order.entity';
 import { OrdersService } from 'src/orders/orders.service';
@@ -92,12 +92,12 @@ export class OrderResolver {
     return { order };
   }
 
-  @Mutation((returns) => SetRestaurantOrderStatusOrderOutput)
+  @Mutation((returns) => SetRestaurantOrderStatusOutput)
   @Role(['Owner'])
   async setRestaurantOrderStatus(
     @AuthUser() { id: userId }: User,
     @Args('input') { id: orderId, status }: SetRestaurantOrderStatusInput,
-  ): Promise<SetRestaurantOrderStatusOrderOutput> {
+  ): Promise<SetRestaurantOrderStatusOutput> {
     const order = await this.ordersService.setRestaurantOrderStatus(
       userId,
       orderId,
