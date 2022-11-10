@@ -58,6 +58,7 @@ export class User extends CoreEntity {
   address?: string;
 
   @OneToOne((type) => Coords, { onDelete: 'CASCADE', eager: true })
+  @Field((type) => Coords, { nullable: true })
   @JoinColumn()
   coords: Coords;
 
