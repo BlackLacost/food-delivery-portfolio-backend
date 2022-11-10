@@ -155,7 +155,7 @@ export class OrdersService {
       canSee = true;
     }
 
-    if (user.role === UserRole.Delivery && order.driverId === user.id) {
+    if (user.role === UserRole.Driver && order.driverId === user.id) {
       canSee = true;
     }
 
@@ -205,7 +205,7 @@ export class OrdersService {
       }
     }
 
-    if (user.role === UserRole.Delivery) {
+    if (user.role === UserRole.Driver) {
       if (status !== OrderStatus.Accepted && status !== OrderStatus.Delivered) {
         canEdit = false;
       }
