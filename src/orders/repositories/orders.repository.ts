@@ -14,6 +14,7 @@ export class OrdersRepository extends Repository<Order> {
     options?: Pick<FindOneOptions<Order>, 'relations'>,
   ): Promise<Order> {
     const order = await this.findOne({
+      where: { id },
       ...(options && { ...options }),
     });
     if (!order) throw new OrderNotFoundError(`Заказ с id ${id} не найден`);
