@@ -38,6 +38,7 @@ import {
   EditRestaurantInput,
   EditRestaurantOutput,
 } from 'src/restaurants/dtos/edit-restaurant.dto';
+import { GetRestaurantOutput } from 'src/restaurants/dtos/get-restaurant.dto';
 import {
   MyRestaurantInput,
   MyRestaurantOutput,
@@ -67,7 +68,7 @@ export class RestaurantResolver {
 
   @Mutation((returns) => CreateRestaurantOutput)
   @Role(['Owner'])
-  async createRestaurant(
+  createRestaurant(
     @AuthUser() owner: User,
     @Args('input') createRestaurantInput: CreateRestaurantInput,
   ): Promise<CreateRestaurantOutput> {
@@ -79,7 +80,7 @@ export class RestaurantResolver {
 
   @Query((returns) => MyRestaurantsOutput)
   @Role(['Owner'])
-  async myRestaurants(@AuthUser() owner: User): Promise<MyRestaurantsOutput> {
+  myRestaurants(@AuthUser() owner: User): Promise<MyRestaurantsOutput> {
     return this.restaurantService.myRestaurants(owner);
   }
 
@@ -87,18 +88,18 @@ export class RestaurantResolver {
   @Role(['Owner'])
   myRestaurant(
     @AuthUser() owner: User,
-    @Args('input') myRestaurantInput: MyRestaurantInput,
+    @Args('input') { id: restaurantId }: MyRestaurantInput,
   ): Promise<MyRestaurantOutput> {
-    return this.restaurantService.myRestaurant(owner, myRestaurantInput);
+    return this.restaurantService.myRestaurant(owner.id, restaurantId);
   }
 
   @Mutation((returns) => EditRestaurantOutput)
   @Role(['Owner'])
-  async editRestaurant(
+  editRestaurant(
     @AuthUser() owner: User,
     @Args('input') editRestaurantInput: EditRestaurantInput,
   ): Promise<EditRestaurantOutput> {
-    return this.restaurantService.editRestaurant(owner, editRestaurantInput);
+    return this.restaurantService.editRestaurant(owner.id, editRestaurantInput);
   }
 
   @Mutation((returns) => DeleteRestaurantOutput)
@@ -107,24 +108,25 @@ export class RestaurantResolver {
     @AuthUser() owner: User,
     @Args('input') deleteRestaurantInput: DeleteRestaurantInput,
   ): Promise<DeleteRestaurantOutput> {
-    return this.restaurantService.deleteRestaurant(
-      owner,
+    await this.restaurantService.deleteRestaurant(
+      owner.id,
       deleteRestaurantInput,
     );
+    return;
   }
 
   @Query((returns) => RestaurantsOutput)
-  restaurants(
+  getRestaurants(
     @Args('input') restaurantsInput: RestaurantsInput,
   ): Promise<RestaurantsOutput> {
     return this.restaurantService.allRestaurans(restaurantsInput);
   }
 
   @Query((returns) => RestaurantOutput)
-  restaurant(
-    @Args('input') restaurantInput: RestaurantInput,
-  ): Promise<RestaurantOutput> {
-    return this.restaurantService.findRestaurantById(restaurantInput);
+  getRestaurant(
+    @Args('input') { restaurantId }: RestaurantInput,
+  ): Promise<GetRestaurantOutput> {
+    return this.restaurantService.findRestaurantById(restaurantId);
   }
 
   @Query((returns) => SearchRestaurantOutput)
@@ -167,7 +169,7 @@ export class DishResovler {
     @AuthUser() owner: User,
     @Args('input') createDishInput: CreateDishInput,
   ): Promise<CreateDishOutput> {
-    return this.restaurantService.createDish(owner, createDishInput);
+    return this.restaurantService.createDish(owner.id, createDishInput);
   }
 
   @Mutation((type) => EditDishOutput)
@@ -176,7 +178,7 @@ export class DishResovler {
     @AuthUser() owner: User,
     @Args('input') editDishInput: EditDishInput,
   ): Promise<EditDishOutput> {
-    return this.restaurantService.editDish(owner, editDishInput);
+    return this.restaurantService.editDish(owner.id, editDishInput);
   }
 
   @Mutation((type) => DeleteDishOutput)
@@ -185,6 +187,6 @@ export class DishResovler {
     @AuthUser() owner: User,
     @Args('input') deleteDishInput: DeleteDishInput,
   ): Promise<DeleteDishOutput> {
-    return this.restaurantService.deleteDish(owner, deleteDishInput);
+    return this.restaurantService.deleteDish(owner.id, deleteDishInput);
   }
 }

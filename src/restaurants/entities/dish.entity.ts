@@ -54,7 +54,7 @@ export class Dish extends CoreEntity {
   @Column()
   @Field((type) => String)
   @IsString()
-  @Length(5, 140)
+  @Length(5, 500)
   description: string;
 
   @ManyToOne((type) => Restaurant, (restaurant) => restaurant.menu, {

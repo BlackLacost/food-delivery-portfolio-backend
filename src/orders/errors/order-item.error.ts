@@ -5,4 +5,8 @@ import { Error } from 'src/common/error';
 export abstract class OrderItemError extends Error {}
 
 @ObjectType({ implements: () => [OrderItemError] })
-export class OrderItemNotFoundError extends OrderItemError {}
+export class OrderItemNotFoundError extends OrderItemError {
+  constructor(orderId: number) {
+    super(`Товар с id ${orderId} не найден`);
+  }
+}

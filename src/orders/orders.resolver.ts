@@ -44,80 +44,65 @@ export class OrderResolver {
 
   @Mutation((returns) => CreateOrderOutput)
   @Role(['Client'])
-  async createOrder(
+  createOrder(
     @AuthUser() customer: User,
     @Args('input') createOrderInput: CreateOrderInput,
   ): Promise<CreateOrderOutput> {
-    return {
-      order: await this.ordersService.createOrder(customer, createOrderInput),
-    };
+    return this.ordersService.createOrder(customer, createOrderInput);
   }
 
   @Query((returns) => GetOrdersOutput)
   @Role(['Any'])
-  async getOrders(
+  getOrders(
     @AuthUser() user: User,
     @Args('input') getOrdersInput: GetOrdersInput,
   ): Promise<GetOrdersOutput> {
-    return { orders: await this.ordersService.getOrders(user, getOrdersInput) };
+    return this.ordersService.getOrders(user, getOrdersInput);
   }
 
   @Query((returns) => GetOrderOutput)
   @Role(['Client'])
-  async getClientOrder(
+  getClientOrder(
     @AuthUser() user: User,
     @Args('input') { id: orderId }: GetOrderInput,
   ): Promise<GetOrderOutput> {
-    const order = await this.ordersService.getClientOrder(user.id, orderId);
-    return { order };
+    return this.ordersService.getClientOrder(user.id, orderId);
   }
 
   @Query((returns) => GetOrderOutput)
   @Role(['Owner'])
-  async getOwnerOrder(
+  getOwnerOrder(
     @AuthUser() user: User,
     @Args('input') { id: ownerId }: GetOrderInput,
   ): Promise<GetOrderOutput> {
-    const order = await this.ordersService.getOwnerOrder(user.id, ownerId);
-    return { order };
+    return this.ordersService.getOwnerOrder(user.id, ownerId);
   }
 
   @Query((returns) => GetOrderOutput)
   @Role(['Driver'])
-  async getDriverOrder(
+  getDriverOrder(
     @AuthUser() user: User,
     @Args('input') { id: orderId }: GetOrderInput,
   ): Promise<GetOrderOutput> {
-    const order = await this.ordersService.getDriverOrder(user.id, orderId);
-    return { order };
+    return this.ordersService.getDriverOrder(user.id, orderId);
   }
 
   @Mutation((returns) => SetDriverOrderStatusOutput)
   @Role(['Driver'])
-  async setDriverOrderStatus(
+  setDriverOrderStatus(
     @AuthUser() { id: userId }: User,
     @Args('input') { id: orderId, status }: SetDriverOrderStatusInput,
   ): Promise<SetDriverOrderStatusOutput> {
-    const order = await this.ordersService.setDriverOrderStatus(
-      userId,
-      orderId,
-      status,
-    );
-    return { order };
+    return this.ordersService.setDriverOrderStatus(userId, orderId, status);
   }
 
   @Mutation((returns) => SetRestaurantOrderStatusOutput)
   @Role(['Owner'])
-  async setRestaurantOrderStatus(
+  setRestaurantOrderStatus(
     @AuthUser() { id: userId }: User,
     @Args('input') { id: orderId, status }: SetRestaurantOrderStatusInput,
   ): Promise<SetRestaurantOrderStatusOutput> {
-    const order = await this.ordersService.setRestaurantOrderStatus(
-      userId,
-      orderId,
-      status,
-    );
-    return { order };
+    return this.ordersService.setRestaurantOrderStatus(userId, orderId, status);
   }
 
   @Subscription((returns) => Order, {
@@ -158,12 +143,10 @@ export class OrderResolver {
 
   @Mutation((returns) => AcceptOrderOutput)
   @Role(['Driver'])
-  async acceptOrder(
+  acceptOrder(
     @AuthUser() driver: User,
     @Args('input') acceptOrderInput: AcceptOrderInput,
   ): Promise<AcceptOrderOutput> {
-    return {
-      order: await this.ordersService.acceptOrder(driver, acceptOrderInput),
-    };
+    return this.ordersService.acceptOrder(driver, acceptOrderInput);
   }
 }

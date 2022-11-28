@@ -36,9 +36,8 @@ export class PaymentsResolver {
   @Mutation((returns) => PromotionPaymentOutput)
   @Role(['Owner'])
   async promotionPayment(
-    @AuthUser() owner: User,
-    @Args('input') testPaymentInput: PromotionPaymentInput,
+    @Args('input') { restaurantId }: PromotionPaymentInput,
   ): Promise<PromotionPaymentOutput> {
-    return this.paymentsService.promotionPayment(owner, testPaymentInput);
+    return this.paymentsService.promotionPayment(restaurantId);
   }
 }

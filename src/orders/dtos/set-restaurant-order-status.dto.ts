@@ -9,6 +9,7 @@ import {
 import { OrderOutput } from 'src/orders/dtos/order.dto';
 import { Order, OrderStatus } from 'src/orders/entities/order.entity';
 import { RestaurantOrderStatusError } from 'src/orders/errors/order-status.error';
+import { OrderNotFoundError } from 'src/orders/errors/orders.error';
 
 export enum RestaurantOrderStatus {
   Cooking = 'Cooking',
@@ -25,11 +26,11 @@ export class SetRestaurantOrderStatusInput extends PickType(Order, ['id']) {
 
 export const SetRestaurantOrderStatusError = createUnionType({
   name: 'SetRestaurantOrderStatusError',
-  types: () => [RestaurantOrderStatusError] as const,
+  types: () => [OrderNotFoundError, RestaurantOrderStatusError] as const,
 });
 
 @ObjectType()
 export class SetRestaurantOrderStatusOutput extends OrderOutput {
-  @Field((type) => RestaurantOrderStatusError, { nullable: true })
-  error?: typeof RestaurantOrderStatusError;
+  @Field((type) => SetRestaurantOrderStatusError, { nullable: true })
+  error?: typeof SetRestaurantOrderStatusError;
 }

@@ -1,4 +1,5 @@
 import {
+  createUnionType,
   Field,
   InputType,
   Int,
@@ -6,8 +7,9 @@ import {
   PartialType,
 } from '@nestjs/graphql';
 import { IsInt, IsPositive } from 'class-validator';
-import { CoreOutput } from 'src/common/dtos/output.dto';
 import { CreateRestaurantInput } from 'src/restaurants/dtos/create-restaurant.dto';
+import { RestaurantOutput } from 'src/restaurants/dtos/restaurant.dto';
+import { RestaurantNotFoundError } from 'src/restaurants/errors/restaurants.error';
 
 @InputType()
 export class EditRestaurantInput extends PartialType(CreateRestaurantInput) {
@@ -17,5 +19,13 @@ export class EditRestaurantInput extends PartialType(CreateRestaurantInput) {
   restaurantId: number;
 }
 
+const EditRestaurantError = createUnionType({
+  name: 'EditRestaurantError',
+  types: () => [RestaurantNotFoundError] as const,
+});
+
 @ObjectType()
-export class EditRestaurantOutput extends CoreOutput {}
+export class EditRestaurantOutput extends RestaurantOutput {
+  @Field((type) => EditRestaurantError, { nullable: true })
+  error?: typeof EditRestaurantError;
+}

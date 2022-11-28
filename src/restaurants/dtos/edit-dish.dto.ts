@@ -1,4 +1,5 @@
 import {
+  createUnionType,
   Field,
   InputType,
   Int,
@@ -6,8 +7,9 @@ import {
   PartialType,
   PickType,
 } from '@nestjs/graphql';
-import { CoreOutput } from 'src/common/dtos/output.dto';
+import { DishOutput } from 'src/restaurants/dtos/dish.dto';
 import { Dish } from 'src/restaurants/entities/dish.entity';
+import { DishNotFoundError } from 'src/restaurants/errors/dishes.error';
 
 @InputType()
 export class EditDishInput extends PickType(PartialType(Dish), [
@@ -20,5 +22,13 @@ export class EditDishInput extends PickType(PartialType(Dish), [
   dishId: number;
 }
 
+const EditDishError = createUnionType({
+  name: 'EditDishError',
+  types: () => [DishNotFoundError] as const,
+});
+
 @ObjectType()
-export class EditDishOutput extends CoreOutput {}
+export class EditDishOutput extends DishOutput {
+  @Field((type) => EditDishError, { nullable: true })
+  error?: typeof EditDishError;
+}

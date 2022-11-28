@@ -1,5 +1,11 @@
-import { Field, InputType, Int, ObjectType } from '@nestjs/graphql';
-import { CoreOutput } from 'src/common/dtos/output.dto';
+import {
+  createUnionType,
+  Field,
+  InputType,
+  Int,
+  ObjectType,
+} from '@nestjs/graphql';
+import { DishNotFoundError } from 'src/restaurants/errors/dishes.error';
 
 @InputType()
 export class DeleteDishInput {
@@ -7,5 +13,13 @@ export class DeleteDishInput {
   dishId: number;
 }
 
+const DeleteDishError = createUnionType({
+  name: 'DeleteDishError',
+  types: () => [DishNotFoundError] as const,
+});
+
 @ObjectType()
-export class DeleteDishOutput extends CoreOutput {}
+export class DeleteDishOutput {
+  @Field((type) => DeleteDishError, { nullable: true })
+  error?: typeof DeleteDishError;
+}

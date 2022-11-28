@@ -1,5 +1,4 @@
 import { Field, InputType, ObjectType, PickType } from '@nestjs/graphql';
-import { CoreOutput } from 'src/common/dtos/output.dto';
 import { Payment } from 'src/payments/entities/payment.entity';
 
 @InputType()
@@ -17,7 +16,7 @@ class PaymentPayload {
 }
 
 @ObjectType()
-export class PromotionPaymentOutput extends CoreOutput {
+export class PromotionPaymentOutput {
   @Field((type) => PaymentPayload, { nullable: true })
   result?: PaymentPayload;
 }

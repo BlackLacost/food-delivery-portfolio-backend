@@ -7,8 +7,8 @@ import {
 } from '@nestjs/graphql';
 import { OrderOutput } from 'src/orders/dtos/order.dto';
 import { OrderItemOption } from 'src/orders/entities/order-item.entity';
-import { DishNotFoundError } from 'src/restaurants/dishes.error';
-import { RestaurantNotFoundError } from 'src/restaurants/restaurants.error';
+import { DishNotFoundError } from 'src/restaurants/errors/dishes.error';
+import { RestaurantNotFoundError } from 'src/restaurants/errors/restaurants.error';
 
 @InputType()
 class CreateOrderItemInput {

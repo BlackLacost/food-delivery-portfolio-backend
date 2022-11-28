@@ -1,9 +1,5 @@
-import { Field, ObjectType } from '@nestjs/graphql';
-import { CoreOutput } from 'src/common/dtos/output.dto';
-import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
+import { ObjectType } from '@nestjs/graphql';
+import { RestaurantsOutput } from 'src/restaurants/dtos/restaurant.dto';
 
 @ObjectType()
-export class MyRestaurantsOutput extends CoreOutput {
-  @Field((type) => [Restaurant], { nullable: true })
-  results?: Restaurant[];
-}
+export class MyRestaurantsOutput extends RestaurantsOutput {}

@@ -5,4 +5,11 @@ import { Error } from 'src/common/error';
 export abstract class RestaurantError extends Error {}
 
 @ObjectType({ implements: () => [RestaurantError] })
-export class RestaurantNotFoundError extends RestaurantError {}
+export class RestaurantNotFoundError extends RestaurantError {
+  restaurantId: number;
+
+  constructor(restaurantId: number) {
+    super(`Ресторан с id ${restaurantId} не найден`);
+    this.restaurantId = restaurantId;
+  }
+}

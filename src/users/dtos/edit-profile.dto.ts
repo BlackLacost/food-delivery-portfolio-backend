@@ -1,11 +1,29 @@
-import { InputType, ObjectType, PartialType, PickType } from '@nestjs/graphql';
-import { CoreOutput } from 'src/common/dtos/output.dto';
+import {
+  createUnionType,
+  Field,
+  InputType,
+  ObjectType,
+  PartialType,
+  PickType,
+} from '@nestjs/graphql';
 import { User } from 'src/users/entities/user.entity';
-
-@ObjectType()
-export class EditProfileOutput extends CoreOutput {}
+import { UserNotFoundError } from 'src/users/errors/users.error';
 
 @InputType()
 export class EditProfileInput extends PartialType(
   PickType(User, ['email', 'password']),
 ) {}
+
+const EditProfileError = createUnionType({
+  name: 'EditProfileError',
+  types: () => [UserNotFoundError] as const,
+});
+
+@ObjectType()
+export class EditProfileOutput {
+  @Field((type) => User, { nullable: true })
+  user?: User;
+
+  @Field((type) => EditProfileError, { nullable: true })
+  error?: typeof EditProfileError;
+}

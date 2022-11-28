@@ -1,6 +1,6 @@
-import { ArgsType, Field, ObjectType } from '@nestjs/graphql';
-import { CoreOutput } from 'src/common/dtos/output.dto';
+import { ArgsType, createUnionType, Field, ObjectType } from '@nestjs/graphql';
 import { User } from 'src/users/entities/user.entity';
+import { UserNotFoundError } from 'src/users/errors/users.error';
 
 @ArgsType()
 export class UserProfileInput {
@@ -8,8 +8,16 @@ export class UserProfileInput {
   userId: number;
 }
 
+const UserProfileError = createUnionType({
+  name: 'UserProfileError',
+  types: () => [UserNotFoundError] as const,
+});
+
 @ObjectType()
-export class UserProfileOuput extends CoreOutput {
+export class UserProfileOuput {
   @Field((type) => User, { nullable: true })
   user?: User;
+
+  @Field((type) => UserProfileError, { nullable: true })
+  error?: typeof UserProfileError;
 }

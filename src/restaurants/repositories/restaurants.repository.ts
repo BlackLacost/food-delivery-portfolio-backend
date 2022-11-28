@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
-import { RestaurantNotFoundError } from 'src/restaurants/restaurants.error';
-import { DataSource, FindManyOptions, Repository } from 'typeorm';
+import { DataSource, DeepPartial, FindManyOptions, Repository } from 'typeorm';
 
 type RestaurantPagination = {
-  results: Restaurant[];
+  restaurants: Restaurant[];
   totalResults: number;
   totalPages: number;
 };
@@ -15,12 +14,13 @@ export class RestaurantsRepository extends Repository<Restaurant> {
     super(Restaurant, dataSource.createEntityManager());
   }
 
-  async findById(id: number): Promise<Restaurant> {
-    const restaurant = await this.findOneBy({ id });
-    if (!restaurant) {
-      throw new RestaurantNotFoundError(`Ресторан с id ${id} не найден`);
-    }
-    return restaurant;
+  // TODO: createAndSave сделать базовым, чтобы не надо было это
+  // делать для всех репозиториев
+  async createAndSave(
+    this: Repository<Restaurant>,
+    options: DeepPartial<Restaurant>,
+  ) {
+    return this.save(this.create(options));
   }
 
   async findAndCountPagination(
@@ -29,12 +29,12 @@ export class RestaurantsRepository extends Repository<Restaurant> {
     page: number = 1,
     itemsOnPage: number = 25,
   ): Promise<RestaurantPagination> {
-    const [results, totalResults] = await this.findAndCount({
+    const [restaurants, totalResults] = await this.findAndCount({
       ...options,
       take: itemsOnPage,
       skip: (page - 1) * itemsOnPage,
     });
     const totalPages = Math.ceil(totalResults / itemsOnPage);
-    return { results, totalResults, totalPages };
+    return { restaurants, totalResults, totalPages };
   }
 }

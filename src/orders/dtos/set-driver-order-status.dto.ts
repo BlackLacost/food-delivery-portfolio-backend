@@ -31,6 +31,6 @@ export const SetDriverOrderStatusError = createUnionType({
 
 @ObjectType()
 export class SetDriverOrderStatusOutput extends OrderOutput {
-  @Field((type) => DriverOrderStatusError, { nullable: true })
-  error?: typeof DriverOrderStatusError;
+  @Field((type) => SetDriverOrderStatusError, { nullable: true })
+  error?: typeof SetDriverOrderStatusError;
 }

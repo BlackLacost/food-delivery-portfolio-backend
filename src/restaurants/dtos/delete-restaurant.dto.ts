@@ -1,6 +1,6 @@
-import { Field, InputType, ObjectType } from '@nestjs/graphql';
+import { createUnionType, Field, InputType, ObjectType } from '@nestjs/graphql';
 import { IsInt, IsPositive } from 'class-validator';
-import { CoreOutput } from 'src/common/dtos/output.dto';
+import { RestaurantNotFoundError } from 'src/restaurants/errors/restaurants.error';
 
 @InputType()
 export class DeleteRestaurantInput {
@@ -10,5 +10,13 @@ export class DeleteRestaurantInput {
   restaurantId: number;
 }
 
+const DeleteRestaurantError = createUnionType({
+  name: 'DeleteRestaurantError',
+  types: () => [RestaurantNotFoundError] as const,
+});
+
 @ObjectType()
-export class DeleteRestaurantOutput extends CoreOutput {}
+export class DeleteRestaurantOutput {
+  @Field((type) => DeleteRestaurantError, { nullable: true })
+  error?: typeof DeleteRestaurantError;
+}

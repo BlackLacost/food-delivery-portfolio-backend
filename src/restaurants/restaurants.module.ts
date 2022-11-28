@@ -4,7 +4,7 @@ import { Coords } from 'src/common/entities/coords.entity';
 import { Category } from 'src/restaurants/entities/category.entity';
 import { Dish } from 'src/restaurants/entities/dish.entity';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
-import { DishesRepository } from 'src/restaurants/repositories/dishes.repository';
+import { CategoryRepository } from 'src/restaurants/repositories/category.repository';
 import { RestaurantsRepository } from 'src/restaurants/repositories/restaurants.repository';
 import {
   CategoryResolver,
@@ -20,9 +20,9 @@ import { RestaurantService } from 'src/restaurants/restaurants.service';
     CategoryResolver,
     DishResovler,
     RestaurantService,
-    DishesRepository,
     RestaurantsRepository,
+    CategoryRepository,
   ],
-  exports: [DishesRepository, RestaurantsRepository],
+  exports: [RestaurantsRepository],
 })
 export class RestaurantsModule {}

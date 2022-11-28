@@ -1,6 +1,13 @@
-import { Field, Float, InputType, ObjectType, PickType } from '@nestjs/graphql';
-import { CoreOutput } from 'src/common/dtos/output.dto';
+import {
+  createUnionType,
+  Field,
+  Float,
+  InputType,
+  ObjectType,
+  PickType,
+} from '@nestjs/graphql';
 import { User } from 'src/users/entities/user.entity';
+import { UserExistsError } from 'src/users/errors/users.error';
 
 @InputType()
 export class CreateAccountInput extends PickType(User, [
@@ -16,5 +23,13 @@ export class CreateAccountInput extends PickType(User, [
   longitude?: number;
 }
 
+const CreateAccountError = createUnionType({
+  name: 'CreateAccountError',
+  types: () => [UserExistsError] as const,
+});
+
 @ObjectType()
-export class CreateAccountOutput extends CoreOutput {}
+export class CreateAccountOutput {
+  @Field((type) => CreateAccountError, { nullable: true })
+  error?: typeof CreateAccountError;
+}

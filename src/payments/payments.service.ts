@@ -7,14 +7,12 @@ import {
   CreatePaymentOutput,
 } from 'src/payments/dtos/create-payment.dto';
 import { GetPaymentsOutput } from 'src/payments/dtos/get-payments.dto';
-import {
-  PromotionPaymentInput,
-  PromotionPaymentOutput,
-} from 'src/payments/dtos/promotion-payment.dto';
+import { PromotionPaymentOutput } from 'src/payments/dtos/promotion-payment.dto';
 import { Payment } from 'src/payments/entities/payment.entity';
 import { YOUKASSA } from 'src/payments/payments.constants';
 import { YoukassaOptions } from 'src/payments/payments.interfaces';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
+import { RestaurantNotFoundError } from 'src/restaurants/errors/restaurants.error';
 import { User } from 'src/users/entities/user.entity';
 import { LessThan, Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
@@ -32,40 +30,31 @@ export class PaymentsService {
     owner: User,
     { restaurantId, transactionId }: CreatePaymentInput,
   ): Promise<CreatePaymentOutput> {
-    try {
-      const restaurant = await this.restaurants.findOneBy({ id: restaurantId });
+    const restaurant = await this.restaurants.findOne({
+      where: { id: restaurantId, ownerId: owner.id },
+    });
 
-      if (!restaurant) return { ok: false, error: 'Restaurant not found' };
-
-      if (restaurant.ownerId !== owner.id) {
-        return { ok: false, error: 'You are not allowed to do this' };
-      }
-
-      await this.payments.save(
-        this.payments.create({ transactionId, user: owner, restaurant }),
-      );
-
-      restaurant.isPromoted = true;
-      const date = new Date();
-      date.setDate(date.getDate() + 7);
-      restaurant.promotedUntil = date;
-      await this.restaurants.save(restaurant);
-
-      return { ok: true };
-    } catch (error) {
-      return { ok: false, error: 'Could not create payment' };
+    if (!restaurant) {
+      return { error: new RestaurantNotFoundError(restaurantId) };
     }
+
+    await this.payments.save(
+      this.payments.create({ transactionId, user: owner, restaurant }),
+    );
+
+    restaurant.isPromoted = true;
+    const date = new Date();
+    date.setDate(date.getDate() + 7);
+    restaurant.promotedUntil = date;
+    await this.restaurants.save(restaurant);
+    return;
   }
 
   async getPayments(user: User): Promise<GetPaymentsOutput> {
-    try {
-      const payments = await this.payments.find({
-        where: { user: { id: user.id } },
-      });
-      return { ok: true, payments };
-    } catch (error) {
-      return { ok: false, error: 'Could not get payments' };
-    }
+    const payments = await this.payments.find({
+      where: { user: { id: user.id } },
+    });
+    return { payments };
   }
 
   @Interval(5000)
@@ -82,40 +71,30 @@ export class PaymentsService {
   }
 
   async promotionPayment(
-    owner: User,
-    { restaurantId }: PromotionPaymentInput,
+    restaurantId: number,
   ): Promise<PromotionPaymentOutput> {
-    try {
-      const checkout = new YooCheckout(this.youkassaOptions);
+    const checkout = new YooCheckout(this.youkassaOptions);
 
-      const idempotenceKey = uuidv4();
+    const idempotenceKey = uuidv4();
 
-      const createPayload: ICreatePayment = {
-        amount: {
-          value: '1000.00',
-          currency: 'RUB',
-        },
-        confirmation: {
-          type: 'embedded',
-        },
-        capture: true,
-        description: `Продвижение ресторана ${restaurantId}`,
-      };
+    const createPayload: ICreatePayment = {
+      amount: {
+        value: '1000.00',
+        currency: 'RUB',
+      },
+      confirmation: {
+        type: 'embedded',
+      },
+      capture: true,
+      description: `Продвижение ресторана ${restaurantId}`,
+    };
 
-      const payment = await checkout.createPayment(
-        createPayload,
-        idempotenceKey,
-      );
-      return {
-        ok: true,
-        result: {
-          confirmationToken: payment.confirmation.confirmation_token,
-          transactionId: payment.id,
-        },
-      };
-    } catch (error) {
-      console.error(error);
-      return { ok: false, error: 'Could not create promotion payment' };
-    }
+    const payment = await checkout.createPayment(createPayload, idempotenceKey);
+    return {
+      result: {
+        confirmationToken: payment.confirmation.confirmation_token,
+        transactionId: payment.id,
+      },
+    };
   }
 }

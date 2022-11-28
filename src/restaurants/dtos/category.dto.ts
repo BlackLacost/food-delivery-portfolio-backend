@@ -1,4 +1,4 @@
-import { Field, InputType, ObjectType } from '@nestjs/graphql';
+import { createUnionType, Field, InputType, ObjectType } from '@nestjs/graphql';
 import { IsString } from 'class-validator';
 import {
   PaginationInput,
@@ -6,6 +6,7 @@ import {
 } from 'src/common/dtos/pagination.dto';
 import { Category } from 'src/restaurants/entities/category.entity';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
+import { CategoryNotFoundError } from 'src/restaurants/errors/categories.error';
 
 @InputType()
 export class CategoryInput extends PaginationInput {
@@ -14,6 +15,11 @@ export class CategoryInput extends PaginationInput {
   slug: string;
 }
 
+const CategoryRestaurantsError = createUnionType({
+  name: 'CategoryRestaurantsError',
+  types: () => [CategoryNotFoundError] as const,
+});
+
 @ObjectType()
 export class CategoryOutput extends PaginationOutput {
   @Field((type) => Category, { nullable: true })
@@ -21,4 +27,7 @@ export class CategoryOutput extends PaginationOutput {
 
   @Field((type) => [Restaurant], { nullable: true })
   restaurants?: Restaurant[];
+
+  @Field((type) => CategoryRestaurantsError, { nullable: true })
+  error?: typeof CategoryRestaurantsError;
 }
