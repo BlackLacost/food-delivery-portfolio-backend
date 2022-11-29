@@ -36,7 +36,7 @@ import { DishNotFoundError } from 'src/restaurants/errors/dishes.error';
 import { RestaurantNotFoundError } from 'src/restaurants/errors/restaurants.error';
 import { RestaurantsRepository } from 'src/restaurants/repositories/restaurants.repository';
 import { User, UserRole } from 'src/users/entities/user.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 
 @Injectable()
 export class OrdersService {
@@ -116,7 +116,7 @@ export class OrdersService {
 
   async getOrders(
     user: User,
-    { status }: GetOrdersInput,
+    { statuses }: GetOrdersInput,
   ): Promise<GetOrdersOutput> {
     const orders = await this.orders.findBy({
       ...(user.role === UserRole.Client && { customer: { id: user.id } }),
@@ -124,7 +124,8 @@ export class OrdersService {
       ...(user.role === UserRole.Owner && {
         restaurant: { owner: { id: user.id } },
       }),
-      ...(status && { status }),
+      ...(statuses.length > 0 && { status: In(statuses) }),
+      // ...(status && { status }),
     });
     return { orders };
   }

@@ -3,8 +3,8 @@ import { Order, OrderStatus } from 'src/orders/entities/order.entity';
 
 @InputType()
 export class GetOrdersInput {
-  @Field((type) => OrderStatus, { nullable: true })
-  status?: OrderStatus;
+  @Field((type) => [OrderStatus], { nullable: true })
+  statuses?: OrderStatus[];
 }
 
 @ObjectType()
