@@ -20,6 +20,10 @@ import {
   GetOrdersInput,
   GetOrdersOutput,
 } from 'src/orders/dtos/get-orders.dto';
+import {
+  GetRestaurantOrdersInput,
+  GetRestaurantOrdersOutput,
+} from 'src/orders/dtos/get-restaurant.orders.dto';
 import { SetDriverOrderStatusOutput } from 'src/orders/dtos/set-driver-order-status.dto';
 import { SetRestaurantOrderStatusOutput } from 'src/orders/dtos/set-restaurant-order-status.dto';
 import { OrderItem } from 'src/orders/entities/order-item.entity';
@@ -126,6 +130,17 @@ export class OrdersService {
       }),
       ...(statuses.length > 0 && { status: In(statuses) }),
       // ...(status && { status }),
+    });
+    return { orders };
+  }
+
+  async getRestaurantOrders(
+    ownerId: number,
+    { restaurantId, statuses }: GetRestaurantOrdersInput,
+  ): Promise<GetRestaurantOrdersOutput> {
+    const orders = await this.orders.findBy({
+      restaurant: { owner: { id: ownerId }, id: restaurantId },
+      ...(statuses.length > 0 && { status: In(statuses) }),
     });
     return { orders };
   }

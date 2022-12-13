@@ -22,6 +22,10 @@ import {
   GetOrdersInput,
   GetOrdersOutput,
 } from 'src/orders/dtos/get-orders.dto';
+import {
+  GetRestaurantOrdersInput,
+  GetRestaurantOrdersOutput,
+} from 'src/orders/dtos/get-restaurant.orders.dto';
 import { OrderUpdatesInput } from 'src/orders/dtos/order-updates.dto';
 import {
   SetDriverOrderStatusInput,
@@ -58,6 +62,18 @@ export class OrderResolver {
     @Args('input') getOrdersInput: GetOrdersInput,
   ): Promise<GetOrdersOutput> {
     return this.ordersService.getOrders(user, getOrdersInput);
+  }
+
+  @Query((returns) => GetRestaurantOrdersOutput)
+  @Role(['Owner'])
+  getRestaurantOrders(
+    @AuthUser() user: User,
+    @Args('input') getRestaurantOrdersInput: GetRestaurantOrdersInput,
+  ): Promise<GetRestaurantOrdersOutput> {
+    return this.ordersService.getRestaurantOrders(
+      user.id,
+      getRestaurantOrdersInput,
+    );
   }
 
   @Query((returns) => GetOrderOutput)
