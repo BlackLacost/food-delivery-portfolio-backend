@@ -6,11 +6,11 @@ services:
     restart: always
     container_name: uber-eats-test-container
     environment:
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${DB_PASS}
-      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${PGUSER}
+      - POSTGRES_PASSWORD=${PGPASSWORD}
+      - POSTGRES_DB=${PGDATABASE}
     ports:
-      - ${DB_PORT}:5432
+      - ${PGPORT}:5432
 
 networks:
   default:
