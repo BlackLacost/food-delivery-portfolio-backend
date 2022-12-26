@@ -11,12 +11,13 @@ export class Category extends CoreEntity {
   @Column({ unique: true })
   @Field((type) => String)
   @IsString()
-  @Length(5)
+  @Length(2)
   name: string;
 
   @Column({ unique: true })
   @Field((type) => String)
   @IsString()
+  @Length(2)
   slug: string;
 
   @Column({ nullable: true })
