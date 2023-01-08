@@ -122,14 +122,17 @@ export class OrdersService {
     user: User,
     { statuses }: GetOrdersInput,
   ): Promise<GetOrdersOutput> {
-    const orders = await this.orders.findBy({
-      ...(user.role === UserRole.Client && { customer: { id: user.id } }),
-      // ...(user.role === UserRole.Delivery && { driver: { id: user.id } }),
-      ...(user.role === UserRole.Owner && {
-        restaurant: { owner: { id: user.id } },
-      }),
-      ...(statuses.length > 0 && { status: In(statuses) }),
-      // ...(status && { status }),
+    const orders = await this.orders.find({
+      where: {
+        ...(user.role === UserRole.Client && { customer: { id: user.id } }),
+        // ...(user.role === UserRole.Delivery && { driver: { id: user.id } }),
+        ...(user.role === UserRole.Owner && {
+          restaurant: { owner: { id: user.id } },
+        }),
+        ...(statuses.length > 0 && { status: In(statuses) }),
+        // ...(status && { status }),
+      },
+      relations: { items: { dish: true } },
     });
     return { orders };
   }
@@ -138,9 +141,12 @@ export class OrdersService {
     ownerId: number,
     { restaurantId, statuses }: GetRestaurantOrdersInput,
   ): Promise<GetRestaurantOrdersOutput> {
-    const orders = await this.orders.findBy({
-      restaurant: { owner: { id: ownerId }, id: restaurantId },
-      ...(statuses.length > 0 && { status: In(statuses) }),
+    const orders = await this.orders.find({
+      where: {
+        restaurant: { owner: { id: ownerId }, id: restaurantId },
+        ...(statuses.length > 0 && { status: In(statuses) }),
+      },
+      relations: { items: { dish: true } },
     });
     return { orders };
   }
