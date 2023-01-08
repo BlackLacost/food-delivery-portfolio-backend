@@ -67,7 +67,7 @@ export class Order extends CoreEntity {
   @RelationId((order: Order) => order.restaurant)
   restaurantId: number;
 
-  @ManyToMany((type) => OrderItem)
+  @ManyToMany((type) => OrderItem, { eager: true })
   @JoinTable()
   @Field((type) => [OrderItem])
   items: OrderItem[];
