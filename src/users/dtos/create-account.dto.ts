@@ -30,6 +30,9 @@ const CreateAccountError = createUnionType({
 
 @ObjectType()
 export class CreateAccountOutput {
+  @Field((type) => String, { nullable: true })
+  token?: string;
+
   @Field((type) => CreateAccountError, { nullable: true })
   error?: typeof CreateAccountError;
 }

@@ -68,6 +68,9 @@ export class UsersService {
       this.verifications.create({ user }),
     );
     this.mailService.sendVerificationEmail(user.email, verification.code);
+
+    const token = this.jwtService.sign({ id: user.id });
+    return { token };
   }
 
   async login({ email, password }: LoginInput): Promise<LoginOutput> {
