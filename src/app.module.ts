@@ -9,22 +9,22 @@ import * as Joi from 'joi';
 import { join } from 'path';
 import { AuthModule } from 'src/auth/auth.module';
 import { CommonModule } from 'src/common/common.module';
-import { Coords } from 'src/common/entities/coords.entity';
-import { OrderItem } from 'src/orders/entities/order-item.entity';
-import { Order } from 'src/orders/entities/order.entity';
-import { Payment } from 'src/payments/entities/payment.entity';
-import { Category } from 'src/restaurants/entities/category.entity';
-import { Dish } from 'src/restaurants/entities/dish.entity';
-import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
 import { RestaurantsModule } from 'src/restaurants/restaurants.module';
-import { User } from 'src/users/entities/user.entity';
-import { Verification } from 'src/users/entities/verification.entity';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { Coords } from './common/entities/coords.entity';
 import { JwtModule } from './jwt/jwt.module';
 import { MailModule } from './mail/mail.module';
+import { OrderItem } from './orders/entities/order-item.entity';
+import { Order } from './orders/entities/order.entity';
 import { OrdersModule } from './orders/orders.module';
+import { Payment } from './payments/entities/payment.entity';
 import { PaymentsModule } from './payments/payments.module';
+import { Category } from './restaurants/entities/category.entity';
+import { Dish } from './restaurants/entities/dish.entity';
+import { Restaurant } from './restaurants/entities/restaurant.entity';
 import { UploadsModule } from './uploads/uploads.module';
+import { User } from './users/entities/user.entity';
+import { Verification } from './users/entities/verification.entity';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -35,11 +35,11 @@ import { UsersModule } from './users/users.module';
       ignoreEnvFile: process.env.NODE_ENV === 'prod',
       validationSchema: Joi.object({
         NODE_ENV: Joi.string().valid('dev', 'prod', 'test').required(),
-        PGUSER: Joi.string().required(),
-        PGPASSWORD: Joi.string().required(),
-        PGDATABASE: Joi.string().required(),
-        PGHOST: Joi.string().required(),
-        PGPORT: Joi.string().required(),
+        PGUSER: Joi.string().default('blacklacost'),
+        PGPASSWORD: Joi.string().default('postgres'),
+        PGDATABASE: Joi.string().default('uber-eats-dev'),
+        PGHOST: Joi.string().default('localhost'),
+        PGPORT: Joi.string().default(5432),
         PRIVATE_KEY: Joi.string().required(),
         MAIL_HOST: Joi.string().required(),
         MAIL_PORT: Joi.number().required(),
@@ -56,11 +56,15 @@ import { UsersModule } from './users/users.module';
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      username: process.env.PGUSER,
-      password: process.env.PGPASSWORD,
-      database: process.env.PGDATABASE,
-      host: process.env.PGHOST,
-      port: +process.env.PGPORT,
+      ...(process.env.DATABASE_URL
+        ? { url: process.env.DATABASE_URL }
+        : {
+            username: process.env.PGUSER,
+            password: process.env.PGPASSWORD,
+            database: process.env.PGDATABASE,
+            host: process.env.PGHOST,
+            port: +process.env.PGPORT,
+          }),
       synchronize: true,
       // For production project
       // synchronize: process.env.NODE_ENV !== 'prod',
