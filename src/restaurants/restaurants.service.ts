@@ -180,6 +180,7 @@ export class RestaurantService {
 
     const restaurants = await this.restaurants.find({
       where: { category: { id: category.id } },
+      relations: { category: true },
       take: itemsOnPage,
       skip: (page - 1) * itemsOnPage,
       order: { isPromoted: 'DESC' },
