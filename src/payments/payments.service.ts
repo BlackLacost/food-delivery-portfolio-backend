@@ -31,7 +31,8 @@ export class PaymentsService {
     { restaurantId, transactionId }: CreatePaymentInput,
   ): Promise<CreatePaymentOutput> {
     const restaurant = await this.restaurants.findOne({
-      where: { id: restaurantId, ownerId: owner.id },
+      where: { id: restaurantId, owner: { id: owner.id } },
+      relations: { owner: true },
     });
 
     if (!restaurant) {
