@@ -41,6 +41,7 @@ import { RestaurantNotFoundError } from 'src/restaurants/errors/restaurants.erro
 import { RestaurantsRepository } from 'src/restaurants/repositories/restaurants.repository';
 import { User, UserRole } from 'src/users/entities/user.entity';
 import { In, Repository } from 'typeorm';
+import { GetCountClientOrdersOutput } from './dtos/get-count-client-orders.dto';
 
 @Injectable()
 export class OrdersService {
@@ -135,6 +136,22 @@ export class OrdersService {
       relations: { items: { dish: true } },
     });
     return { orders };
+  }
+
+  async getCountClientOrders(user: User): Promise<GetCountClientOrdersOutput> {
+    const orders = await this.orders.find({
+      where: {
+        customer: { id: user.id },
+        status: In([
+          OrderStatus.Pending,
+          OrderStatus.Accepted,
+          OrderStatus.Cooking,
+          OrderStatus.Cooked,
+          OrderStatus.PickedUp,
+        ]),
+      },
+    });
+    return { count: orders.length };
   }
 
   async getRestaurantOrders(

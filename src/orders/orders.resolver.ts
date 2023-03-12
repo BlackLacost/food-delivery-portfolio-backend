@@ -38,6 +38,7 @@ import {
 import { Order } from 'src/orders/entities/order.entity';
 import { OrdersService } from 'src/orders/orders.service';
 import { User } from 'src/users/entities/user.entity';
+import { GetCountClientOrdersOutput } from './dtos/get-count-client-orders.dto';
 
 @Resolver((of) => Order)
 export class OrderResolver {
@@ -62,6 +63,14 @@ export class OrderResolver {
     @Args('input') getOrdersInput: GetOrdersInput,
   ): Promise<GetOrdersOutput> {
     return this.ordersService.getOrders(user, getOrdersInput);
+  }
+
+  @Query((returns) => GetCountClientOrdersOutput)
+  @Role(['Client'])
+  getCountClientOrders(
+    @AuthUser() user: User,
+  ): Promise<GetCountClientOrdersOutput> {
+    return this.ordersService.getCountClientOrders(user);
   }
 
   @Query((returns) => GetRestaurantOrdersOutput)
