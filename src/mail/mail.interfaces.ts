@@ -4,4 +4,5 @@ export interface MailModuleOptions {
   secure: boolean;
   fromEmail: string;
   password: string;
+  url: string;
 }

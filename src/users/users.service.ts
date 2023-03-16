@@ -67,7 +67,7 @@ export class UsersService {
     const verification = await this.verifications.save(
       this.verifications.create({ user }),
     );
-    this.mailService.sendVerificationEmail(user.email, verification.code);
+    await this.mailService.sendVerificationEmail(user.email, verification.code);
 
     const token = this.jwtService.sign({ id: user.id });
     return { token };

@@ -53,6 +53,7 @@ import { UsersModule } from './users/users.module';
         CLOUDINARY_FOLDER: Joi.string().required(),
         YOUKASSA_SHOP_ID: Joi.string().required(),
         YOUKASSA_SECRET_KEY: Joi.string().required(),
+        URL: Joi.string().required(),
       }),
     }),
     TypeOrmModule.forRoot({
@@ -109,6 +110,7 @@ import { UsersModule } from './users/users.module';
       secure: process.env.MAIL_SECURE === 'true' ? true : false,
       fromEmail: process.env.MAIL_FROM_EMAIL,
       password: process.env.MAIL_PASSWORD,
+      url: process.env.URL,
     }),
     CloudinaryModule.forRoot({
       cloudName: process.env.CLOUDINARY_CLOUD_NAME,
