@@ -5,4 +5,5 @@ export interface MailModuleOptions {
   fromEmail: string;
   password: string;
   url: string;
+  api_key: string;
 }

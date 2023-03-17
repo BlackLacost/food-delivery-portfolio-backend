@@ -47,6 +47,7 @@ import { UsersModule } from './users/users.module';
         MAIL_SECURE: Joi.boolean().required(),
         MAIL_FROM_EMAIL: Joi.string().required(),
         MAIL_PASSWORD: Joi.string().required(),
+        MAIL_API_KEY: Joi.string().required(),
         CLOUDINARY_CLOUD_NAME: Joi.string().required(),
         CLOUDINARY_API_KEY: Joi.string().required(),
         CLOUDINARY_API_SECRET: Joi.string().required(),
@@ -110,6 +111,7 @@ import { UsersModule } from './users/users.module';
       secure: process.env.MAIL_SECURE === 'true' ? true : false,
       fromEmail: process.env.MAIL_FROM_EMAIL,
       password: process.env.MAIL_PASSWORD,
+      api_key: process.env.MAIL_API_KEY,
       url: process.env.URL,
     }),
     CloudinaryModule.forRoot({
