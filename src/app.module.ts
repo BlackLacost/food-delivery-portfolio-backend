@@ -1,10 +1,10 @@
+import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ApolloServerPluginLandingPageLocalDefault } from 'apollo-server-core';
 import * as Joi from 'joi';
 import { join } from 'path';
 import { AuthModule } from 'src/auth/auth.module';
@@ -35,12 +35,12 @@ import { UsersModule } from './users/users.module';
       ignoreEnvFile: process.env.NODE_ENV === 'prod',
       validationSchema: Joi.object({
         NODE_ENV: Joi.string().valid('dev', 'prod', 'test').required(),
-        DATABASE_URL: Joi.string().required(),
-        // PGUSER: Joi.string().default('blacklacost'),
-        // PGPASSWORD: Joi.string().default('postgres'),
-        // PGDATABASE: Joi.string().default('uber-eats-dev'),
-        // PGHOST: Joi.string().default('localhost'),
-        // PGPORT: Joi.string().default(5432),
+        // DATABASE_URL: Joi.string().required(),
+        PGUSER: Joi.string().default('blacklacost'),
+        PGPASSWORD: Joi.string().default('postgres'),
+        PGDATABASE: Joi.string().default('uber-eats-dev'),
+        PGHOST: Joi.string().default('localhost'),
+        PGPORT: Joi.string().default(5432),
         PRIVATE_KEY: Joi.string().required(),
         MAIL_HOST: Joi.string().required(),
         MAIL_PORT: Joi.number().required(),

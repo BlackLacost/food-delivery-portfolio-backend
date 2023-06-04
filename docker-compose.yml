@@ -3,7 +3,7 @@ version: '3.8'
 services:
   db-dev:
     image: postgres
-    restart: always
+    restart: unless-stopped
     container_name: food-delivery-portfolio-dev-container
     environment:
       - POSTGRES_USER=${PGUSER}
