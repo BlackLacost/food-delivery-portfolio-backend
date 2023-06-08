@@ -5,7 +5,7 @@ import {
   ObjectType,
   registerEnumType,
 } from '@nestjs/graphql';
-import * as brcypt from 'bcrypt';
+import { compare, hash } from 'bcryptjs';
 import { IsBoolean, IsEmail, IsEnum, IsString } from 'class-validator';
 import { Coords } from 'src/common/entities/coords.entity';
 import { CoreEntity } from 'src/common/entities/core.entity';
@@ -83,7 +83,7 @@ export class User extends CoreEntity {
   async hashPassword(): Promise<void> {
     if (!this.password) return;
     try {
-      this.password = await brcypt.hash(this.password, 10);
+      this.password = await hash(this.password, 10);
     } catch (e) {
       console.log(e);
       throw new InternalServerErrorException();
@@ -92,7 +92,7 @@ export class User extends CoreEntity {
 
   async checkPassword(password: string): Promise<boolean> {
     try {
-      return await brcypt.compare(password, this.password);
+      return await compare(password, this.password);
     } catch (e) {
       console.log(e);
       throw new InternalServerErrorException();

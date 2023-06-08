@@ -1,17 +1,28 @@
-version: '3.8'
+version: '2.4'
 
 services:
-  db-dev:
+  api:
+    image: eat-api:latest
+    restart: always
+    ports:
+      - 5000:4000
+    env_file: .env
+    depends_on:
+      - db
+
+  db:
     image: postgres
-    restart: unless-stopped
-    container_name: food-delivery-portfolio-dev-container
+    container_name: eat-db
+    restart: always
+    ports:
+      - ${PORT}:5432
     environment:
       - POSTGRES_USER=${PGUSER}
       - POSTGRES_PASSWORD=${PGPASSWORD}
       - POSTGRES_DB=${PGDATABASE}
-    ports:
-      - ${PGPORT}:5432
+    volumes:
+      - /home/user/docker/eat-api/data/pgdata:/var/lib/postgresql/data
+      - /home/user/docker/eat-api/data/backup:/backup
 
 networks:
   default:
-    name: food-delivery-portfolio-dev-network
